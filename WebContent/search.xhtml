@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<h:head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+
+	<h:form>
+		<p:outputPanel style="font-size: 13px">
+			<p:accordionPanel multiple="true">
+				<p:tab title="#{dic.dic['Messages']}">
+					<p:dataTable value="#{globalSearchControler.resultMessages}"
+						var="message">
+
+						<p:column>
+							<h:outputText value="#{toolBox.abstraction(message.title,30)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{toolBox.abstraction(message.body,150)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:commandLink value="#{dic.dic['Shortcut']}" target="_blank" style="color: #0088cc"
+								action="#{globalSearchControler.redirect(message)}"></h:commandLink>
+						</p:column>
+					</p:dataTable>
+				</p:tab>
+				<p:separator></p:separator>
+				<p:tab title="#{dic.dic['Notifications']}">
+
+					<p:dataTable value="#{globalSearchControler.resultNotifications}"
+						var="notification">
+						<p:column>
+							<h:outputText
+								value="#{toolBox.abstraction(notification.title,30)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText
+								value="#{toolBox.abstraction(notification.body,150)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:commandLink value="#{dic.dic['Shortcut']}" target="_blank" style="color: #0088cc"
+								action="#{globalSearchControler.redirect(notification)}"></h:commandLink>
+						</p:column>
+					</p:dataTable>
+				</p:tab>
+				<p:tab title="#{dic.dic['Tasks']}">
+
+					<p:dataTable value="#{globalSearchControler.resultTasks}"
+						var="task">
+
+						<p:column>
+							<h:outputText value="#{toolBox.abstraction(task.title,30)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{toolBox.abstraction(task.description,150)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:commandLink value="#{dic.dic['Shortcut']}" target="_blank" style="color: #0088cc"
+								action="#{globalSearchControler.redirect(task)}"></h:commandLink>
+						</p:column>
+					</p:dataTable>
+				</p:tab>
+				<p:tab title="#{dic.dic['Applications']}">
+
+					<p:dataTable value="#{globalSearchControler.resultApplications}"
+						var="app">
+
+						<p:column>
+							<h:outputText value="#{toolBox.abstraction(app.title,30)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{toolBox.abstraction(app.body,150)}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:commandLink value="#{dic.dic['Shortcut']}" target="_blank" style="color: #0088cc"
+								action="#{globalSearchControler.redirect(app)}"></h:commandLink>
+						</p:column>
+					</p:dataTable>
+				</p:tab>
+				<p:tab title="#{dic.dic['People']}">
+
+					<p:dataTable value="#{globalSearchControler.resultUsers}"
+						var="user">
+
+						<p:column>
+							<h:outputText value="#{user.name}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{user.roleName}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{user.realName}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{user.description}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{user.department}"></h:outputText>
+						</p:column>
+						<p:column>
+							<p:commandLink value="#{dic.dic['Shortcut']}" style="color: #0088cc"
+								oncomplete="userDetialDlg_w.show()" update=":userDetialDlg"
+								actionListener="#{toolBox.initUserWrap(user)}">
+								<f:setPropertyActionListener
+									target="#{globalSearchControler.selectedUser}" value="#{user}"></f:setPropertyActionListener>
+							</p:commandLink>
+						</p:column>
+					</p:dataTable>
+				</p:tab>
+			</p:accordionPanel>
+		</p:outputPanel>
+
+
+	</h:form>
+
+	<p:dialog id="userDetialDlg" header="#{dic.dic['UserProfile']}"  style="font-size: 13px"
+		widgetVar="userDetialDlg_w">
+		<util:user userWrap="#{globalSearchControler.selectedUser}" />
+	</p:dialog>
+
+	<p:dialog header="#{dic.dic['CreateNewMessage']}" resizable="false" style="font-size: 13px"
+		draggable="true" widgetVar="_newMessageDlg_w" id="_newMessageDlg"
+		width="530" appendToBody="true">
+		<h:form enctype="multipart/form-data">
+			<h:panelGrid columns="2" cellpadding="4">
+				<h:outputText value="#{dic.dic['To']} : "></h:outputText>
+				<h:outputText value="#{messageControler.newMessage.recieverName}"></h:outputText>
+				<h:outputText value="#{dic.dic['Title']} : "></h:outputText>
+				<p:inputText value="#{messageControler.newMessage.title}" maxlength="50" required="true" requiredMessage="title is required"/>
+
+				<h:outputText value="#{dic.dic['AttachFile']} : "></h:outputText>
+				<p:fileUpload value="#{messageControler.file}" mode="simple" />
+			</h:panelGrid>
+
+
+			<p:separator />
+
+			<p:inputTextarea style="width:98%;height:200px" autoResize="false"
+				value="#{messageControler.newMessage.body}" maxlength="50" required="true" requiredMessage="body is required"/>
+
+			<p:separator />
+			<p:commandButton value="#{dic.dic['Send']}" update=":form:dataTable, :growl"
+				ajax="false" oncomplete="newMessageDialog.hide(); "
+				actionListener="#{messageControler.doSendMessage}"
+				onclick="statusDialog.show()" />
+			<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+
+		</h:form>
+	</p:dialog>
+
+	<p:ajaxStatus onstart="statusDialog.show();"
+			oncomplete="statusDialog.hide();" />
+
+
+
+		<p:dialog modal="true" widgetVar="statusDialog" header="#{dic.dic['Processing']}"
+			appendToBody="true" draggable="false" closable="false">
+			<p:graphicImage value="/images/ajaxloadingbar.gif" />
+		</p:dialog>
+
+</h:body>
+</html>

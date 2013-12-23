@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{applicationControler.onRefresh()}
+			<link rel="stylesheet" type="text/css" href="./css/message.css"></link>
+			<script type="text/javascript" src="./js/func.js"></script>
+
+
+			<p:layout>
+
+				<p:layoutUnit position="north" styleClass="nestedUnit">
+
+
+					<h:form id="toolbarForm">
+						<p:toolbar>
+							<p:toolbarGroup align="left">
+
+								<p:menuButton value="#{dic.dic['Filter']}">
+									<p:menuitem value="#{dic.dic['All']}"
+										update=":form :detialForm"
+										actionListener="#{applicationControler.showAll}" />
+									<p:menuitem value="#{dic.dic['Accepted']}"
+										update=":form :detialForm"
+										actionListener="#{applicationControler.showAccepted}" />
+									<p:menuitem value="#{dic.dic['Rejected']}"
+										update=":form :detialForm"
+										actionListener="#{applicationControler.showRejected}" />
+									<p:menuitem value="#{dic.dic['NotDealed']}"
+										update=":form :detialForm"
+										actionListener="#{applicationControler.showNotDealed}" />
+								</p:menuButton>
+
+								<p:menuButton value="#{dic.dic['View']}">
+									<p:menuitem update=":form :detialForm"
+										value="#{dic.dic['ShowSentApplications']}"
+										actionListener="#{applicationControler.showSentApplication}" />
+									<p:menuitem update=":form :detialForm"
+										value="#{dic.dic['ShowRecievedApplications']}"
+										actionListener="#{applicationControler.showRecievedApplication}" />
+								</p:menuButton>
+
+								<p:commandButton id="deleteMessageBtn"
+									value="#{dic.dic['Delete']}"
+									actionListener="#{applicationControler.doDeleteApplication}"
+									update="@all" icon="ui-icon-trash"
+									rendered="#{applicationControler.selectedApplication !=null}" />
+
+
+							</p:toolbarGroup>
+							<p:toolbarGroup align="right">
+
+								<p:commandButton style="visibility: hidden" />
+								<p:menuButton value="#{dic.dic['Layout']}">
+									<p:menuitem value="#{dic.dic['Horizontal']}" update="@all"
+										actionListener="#{applicationControler.changeLayoutHorizontal}" />
+									<p:menuitem value="#{dic.dic['Vertical']}" update="@all"
+										actionListener="#{applicationControler.changeLayoutVertical}" />
+								</p:menuButton>
+								<p:commandButton value="#{dic.dic['Refresh']}"
+									actionListener="#{applicationControler.onRefresh()}"
+									update="@all" />
+							</p:toolbarGroup>
+						</p:toolbar>
+
+					</h:form>
+				</p:layoutUnit>
+
+
+				<p:layoutUnit position="center" resizable="true"
+					binding="#{applicationControler.dataUnit}" styleClass="nestedUnit">
+					<h:form id="form">
+						<p:dataTable id="dataTable" var="app" widgetVar="dataTable_w"
+							sortBy="#{app.time}" sortOrder="descending"
+							value="#{applicationControler.applicationListModel}"
+							selectionMode="single" styleClass="hide-column-names"
+							selection="#{applicationControler.selectedApplication}"
+							emptyMessage="No application found with given criteria"
+							filteredValue="#{applicationControler.filteredApplications}">
+
+							<p:ajax event="rowSelect"
+								update=":detialForm,:form:dataTable,:toolbarForm"
+								listener="#{applicationControler.initApplication}" />
+							<p:ajax event="rowUnselect" update=":toolbarForm" />
+
+							<p:column sortBy="#{app.senderName}"
+								rendered="#{applicationControler.recievedApplicationView}"
+								styleClass="#{app.fileId!='none' ? 'attach-image' : null} #{app.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+								<h:outputText value="#{app.senderName}" />
+							</p:column>
+							<p:column sortBy="#{app.recieverName}"
+								rendered="#{!applicationControler.recievedApplicationView and app.recieverName != 'none' and app.recieverName != ''}"
+								styleClass="#{app.fileId!='none' ? 'attach-image' : null} #{app.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+								<h:outputText value="#{app.recieverName}" />
+							</p:column>
+							<p:column sortBy="#{app.recieverRole}"
+								rendered="#{!applicationControler.recievedApplicationView and app.recieverRole != 'none' and app.recieverRole != ''}"
+								styleClass="#{app.fileId!='none' ? 'attach-image' : null} #{app.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+								<h:outputText value="#{dic.dic['Group']}: #{app.recieverRole}" />
+							</p:column>
+							<p:column sortBy="#{app.title}"
+								styleClass="#{app.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText value="#{app.title}" />
+							</p:column>
+							<p:column style="width:50%;" sortBy="#{app.body}"
+								styleClass="#{app.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{applicationControler.abstraction(app.title,150)}" />
+							</p:column>
+							<p:column sortBy="#{app.time}"
+								styleClass="#{app.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{applicationControler.convertTime(app.time)}" />
+							</p:column>
+
+							<p:column sortBy="#{app.statue}"
+								styleClass="#{app.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText value="#{app.statue}" />
+							</p:column>
+
+
+
+						</p:dataTable>
+
+
+					</h:form>
+
+
+				</p:layoutUnit>
+
+				<p:layoutUnit position="south" styleClass="nestedUnit" size="65%"
+					binding="#{applicationControler.detialUnit}" resizable="true">
+
+					<h:form id="detialForm">
+						<h:panelGroup layout="block"
+							rendered="#{applicationControler.selectedApplication == null}">
+							<div class="well selected-mail-message"
+								style="background-color: #e8e8e8">
+								<h:outputText styleClass="no-mail-message"
+									value="#{dic.dic['NoApplicationSelected']}"></h:outputText>
+							</div>
+						</h:panelGroup>
+						<p:tabView id="tabView"
+							rendered="#{applicationControler.selectedApplication != null}">
+
+							<p:tab title="#{dic.dic['Application']}">
+
+								<p:toolbar>
+									<p:toolbarGroup align="left"
+										rendered="#{applicationControler.recievedApplicationView}">
+										<p:commandButton value="#{dic.dic['Approve']}"
+											rendered="#{applicationControler.selectedApplication.statue.ordinal() == 0}"
+											oncomplete="acceptApplicationDialog.show()"
+											update=":acceptApplicationDlg" />
+										<p:commandButton value="#{dic.dic['Reject']}"
+											update=":rejectApplicationDlg" immediate="true"
+											rendered="#{applicationControler.selectedApplication.statue.ordinal() == 0 and applicationControler.selectedApplication.type != 'NEW_EMPLOYEE' and applicationControler.selectedApplication.type != 'PROMOTE_AUTHORITY'}"
+											oncomplete="rejectApplicationDialog.show()" />
+									</p:toolbarGroup>
+
+								</p:toolbar>
+
+								<p:outputPanel
+									rendered="#{applicationControler.selectedApplication != null}">
+									<h:panelGrid columns="2" cellpadding="4"
+										style="font-weight:bold;font-size:20px">
+										<h:outputText
+											value="#{applicationControler.selectedApplication.title}" />
+									</h:panelGrid>
+									<p:separator />
+									<h:panelGrid columns="2" cellpadding="4">
+
+										<h:outputLabel value="#{dic.dic['Sender']} :"
+											style="font-weight: bolder"
+											rendered="#{applicationControler.recievedApplicationView}" />
+										<h:outputText id="senderName" style="font-weight: bolder"
+											rendered="#{applicationControler.recievedApplicationView}"
+											value="#{applicationControler.selectedApplication.senderName}" />
+
+
+										<h:outputLabel value="#{dic.dic['Reciever']} :"
+											style="font-weight: bolder"
+											rendered="#{!applicationControler.recievedApplicationView and applicationControler.selectedApplication.recieverName!='none'}" />
+										<h:outputText style="font-weight: bolder"
+											rendered="#{!applicationControler.recievedApplicationView  and applicationControler.selectedApplication.recieverName!='none' and applicationControler.selectedApplication.recieverName!=''}"
+											value="#{applicationControler.selectedApplication.recieverName}" />
+
+										<h:outputLabel value="#{dic.dic['RecieverGroup']} :"
+											style="font-weight: bolder"
+											rendered="#{!applicationControler.recievedApplicationView and applicationControler.selectedApplication.recieverRole!='none' and applicationControler.selectedApplication.recieverRole!=''}" />
+										<h:outputText style="font-weight: bolder"
+											rendered="#{!applicationControler.recievedApplicationView  and applicationControler.selectedApplication.recieverRole!='none' and applicationControler.selectedApplication.recieverRole!=''}"
+											value="#{applicationControler.selectedApplication.recieverRole}" />
+
+										<h:outputLabel value="#{dic.dic['Time']} :" />
+										<h:outputText
+											value="#{applicationControler.convertTime(applicationControler.selectedApplication.time)}" />
+
+										<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+										<h:outputText value="#{dic.dic['NoAttachFile']}"
+											rendered="#{applicationControler.selectedApplication.fileId=='' || applicationControler.selectedApplication.fileId=='none'}" />
+
+										<p:commandLink value="#{dic.dic['ClickToDownload']}"
+											style="color: #0088cc"
+											rendered="#{applicationControler.selectedApplication.fileId!='' and applicationControler.selectedApplication.fileId!='none'}"
+											ajax="false"
+											actionListener="#{toolBox.processDownload(applicationControler.selectedApplication)}">
+											<p:fileDownload value="#{toolBox.downloadFile}" />
+										</p:commandLink>
+
+									</h:panelGrid>
+									<p:separator />
+									<p:fieldset legend="Operation" toggleable="true"
+										style="background-color: #e8e8e8" toggleSpeed="200">
+										<h:outputText value="#{dic.dic['NoOperationAvaliable']}"
+											rendered="#{applicationControler.selectedApplication.type != 'NEW_EMPLOYEE' and applicationControler.selectedApplication.type != 'PROMOTE_AUTHORITY'
+															and applicationControler.selectedApplication.type != 'ASK_FOR_LEAVE'}"
+											style="text-align: center;font-size: 18px;font-weight: bold;"></h:outputText>
+										<p:outputPanel
+											rendered="#{applicationControler.selectedApplication.type == 'NEW_EMPLOYEE'}">
+											<p:dataTable
+												rendered="#{applicationControler.recievedApplicationView}"
+												value="#{applicationControler.newEmployeeDataList}"
+												selection="#{applicationControler.approvedNewEmployee}"
+												var="user">
+												<p:column selectionMode="multiple" style="width:18px" />
+												<p:column headerText="#{dic.dic['RealName']}">
+													<h:outputText value="#{user.realName}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Role']}">
+													<h:outputText value="#{user.roleName}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['IdentityNumber']}">
+													<h:outputText value="#{user.identityNumber}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Description']}">
+													<h:outputText value="#{user.description}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Department']}">
+													<h:outputText value="#{user.department}"></h:outputText>
+												</p:column>
+
+											</p:dataTable>
+
+											<p:dataTable
+												rendered="#{!applicationControler.recievedApplicationView}"
+												value="#{applicationControler.newEmployeeDataList}"
+												var="user">
+												<p:column headerText="#{dic.dic['RealName']}">
+													<h:outputText value="#{user.realName}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Role']}">
+													<h:outputText value="#{user.roleName}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['IdentityNumber']}">
+													<h:outputText value="#{user.identityNumber}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Description']}">
+													<h:outputText value="#{user.description}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Department']}">
+													<h:outputText value="#{user.department}"></h:outputText>
+												</p:column>
+
+											</p:dataTable>
+										</p:outputPanel>
+
+										<p:outputPanel
+											rendered="#{applicationControler.selectedApplication.type == 'PROMOTE_AUTHORITY'}">
+											<p:dataTable
+												rendered="#{applicationControler.recievedApplicationView}"
+												value="#{applicationControler.appliedFunctionDataModel}"
+												selection="#{applicationControler.approvedFunctionsArray}"
+												var="function">
+												<p:column selectionMode="multiple" style="width:18px" />
+												<p:column headerText="#{dic.dic['System']}">
+													<h:outputText value="#{function.systemName}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Function']}">
+													<h:outputText value="#{function.functionName}"></h:outputText>
+												</p:column>
+
+											</p:dataTable>
+
+											<p:dataTable
+												rendered="#{!applicationControler.recievedApplicationView}"
+												value="#{applicationControler.appliedFunctionDataModel}"
+												var="user">
+												<p:column headerText="#{dic.dic['System']}">
+													<h:outputText value="#{function.systemName}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['Function']}">
+													<h:outputText value="#{function.functionName}"></h:outputText>
+												</p:column>
+
+											</p:dataTable>
+										</p:outputPanel>
+										<p:outputPanel
+											rendered="#{applicationControler.selectedApplication.type == 'ASK_FOR_LEAVE'}">
+											<p:dataTable value="#{applicationControler.leaveSysAdmin}"
+												var="sysAdmin">
+												<p:column headerText="#{dic.dic['System']}">
+													<h:outputText value="#{sysAdmin.systemName}"></h:outputText>
+												</p:column>
+												<p:column headerText="#{dic.dic['TemporaryAdmin']}"
+													rendered="#{applicationControler.selectedApplication.statue.toString() == 'NOT_DEALED'}">
+
+													<p:autoComplete maxlength="50" value="#{sysAdmin.userName}"
+														completeMethod="#{globalBean.completeUser}"
+														required="true"
+														requiredMessage="Please enter target user name."
+														global="false">
+														<f:validator binding="#{userExistValidator}">
+														</f:validator>
+													</p:autoComplete>
+												</p:column>
+											</p:dataTable>
+										</p:outputPanel>
+									</p:fieldset>
+									<p:fieldset legend="Proceeded stages" toggleable="true"
+										style="background-color: #e8e8e8;margin:10px 0px"
+										toggleSpeed="200">
+										<p:dataTable style="width:50%"
+											value="#{applicationControler.selectedApplication.stages}"
+											var="stage">
+											<p:column>
+												<h:outputText value="#{stage.name}"></h:outputText>
+											</p:column>
+											<p:column>
+												<h:outputText value="#{stage.serial}"></h:outputText>
+											</p:column>
+											<p:column>
+												<h:outputText value="#{stage.dealerName}"></h:outputText>
+											</p:column>
+											<p:column style="width:6%">
+												<p:commandButton value="#{dic.dic['Detial']}"
+													oncomplete="stageDlg_w.show()" update=":stageDlg"
+													actionListener="#{toolBox.initApplicationStageWrap(stage)}">
+													<f:setPropertyActionListener
+														target="#{applicationControler.selectedStage}"
+														value="#{stage}"></f:setPropertyActionListener>
+												</p:commandButton>
+											</p:column>
+											<p:column rendered="#{stage.status.toString()=='PASS'}"
+												style="background-color: #00ff6f">
+												<h:outputText value="#{stage.status}"></h:outputText>
+											</p:column>
+											<p:column rendered="#{stage.status.toString()=='FAIL'}"
+												style="background-color: #ff1a00">
+												<h:outputText value="#{stage.status}"></h:outputText>
+											</p:column>
+											<p:column rendered="#{stage.status.toString()=='WAIT'}"
+												style="background-color: #eeff00">
+												<h:outputText value="#{stage.status}"></h:outputText>
+											</p:column>
+
+
+										</p:dataTable>
+									</p:fieldset>
+									<p:fieldset legend="Application Detial" toggleable="true"
+										style="background-color: #e8e8e8;margin:10px 0px"
+										toggleSpeed="200">
+										<h:outputText
+											value="#{applicationControler.selectedApplication.body}"
+											escape="false" style="white-space: pre;font-size:15px" />
+									</p:fieldset>
+
+
+
+								</p:outputPanel>
+
+							</p:tab>
+
+							<p:tab title="#{dic.dic['Result']}"
+								disabled="#{applicationControler.selectedApplication.statue.toString() == 'NOT_DEALED' or applicationControler.selectedApplication.result == null}">
+								<h:panelGrid columns="2" cellpadding="4"
+									style="font-weight:bold;font-size:20px">
+									<h:outputText
+										value="#{applicationControler.selectedApplication.result.title}" />
+								</h:panelGrid>
+								<p:separator />
+								<h:panelGrid columns="2" cellpadding="4">
+									<h:outputLabel value="#{dic.dic['Time']} :" />
+									<h:outputText
+										value="#{applicationControler.convertTime(applicationControler.selectedApplication.result.time)}" />
+
+									<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+									<h:outputText value="#{dic.dic['NoAttachFile']}"
+										rendered="#{applicationControler.selectedApplication.result.fileId=='' || applicationControler.selectedApplication.result.fileId=='none'}" />
+
+									<p:commandLink value="#{dic.dic['ClickToDownload']}"
+										style="color: #0088cc"
+										rendered="#{applicationControler.selectedApplication.result.fileId!='' and applicationControler.selectedApplication.result.fileId!='none'}"
+										ajax="false"
+										actionListener="#{toolBox.processDownload(applicationControler.selectedApplication.result)}">
+										<p:fileDownload value="#{toolBox.downloadFile}" />
+									</p:commandLink>
+
+								</h:panelGrid>
+								<p:separator />
+								<div class="mail-body-container"
+									style="background-color: #e8e8e8">
+									<h:outputText styleClass="plain-body-container"
+										value="#{applicationControler.selectedApplication.result.body}"></h:outputText>
+								</div>
+								<p:separator />
+
+								<p:outputPanel
+									rendered="#{applicationControler.selectedApplication.type.toString() == 'CREATE_GUEST' and applicationControler.selectedApplication.statue.toString()=='ACCEPTED'}">
+									<util:user userWrap="#{applicationControler.newGuest}" />
+								</p:outputPanel>
+
+								<p:outputPanel
+									rendered="#{applicationControler.selectedApplication.type.toString() == 'NEW_EMPLOYEE'}">
+									<p:fieldset legend="Succeed" toggleable="true"
+										toggleSpeed="200">
+										<p:dataTable id="success"
+											value="#{applicationControler.newEmployeeSuccessResult}"
+											var="user">
+											<p:column headerText="#{dic.dic['RealName']}">
+												<h:outputText value="#{user.realName}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Role']}">
+												<h:outputText value="#{user.roleName}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['IdentityNumber']}">
+												<h:outputText value="#{user.identityNumber}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Description']}">
+												<h:outputText value="#{user.description}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Department']}">
+												<h:outputText value="#{user.department}"></h:outputText>
+											</p:column>
+										</p:dataTable>
+										<p:panel header="#{dic.dic['Export']}" style="width: 120px">
+											<h:commandLink>
+												<p:graphicImage value="./images/csv.png" />
+												<p:dataExporter type="csv" target="success"
+													fileName="success" />
+											</h:commandLink>
+
+											<h:commandLink>
+												<p:graphicImage value="./images/xml.png" />
+												<p:dataExporter type="xml" target="success"
+													fileName="success" />
+											</h:commandLink>
+										</p:panel>
+									</p:fieldset>
+									<p:fieldset legend="Failed" toggleable="true" toggleSpeed="200">
+										<p:dataTable id="fail"
+											value="#{applicationControler.newEmployeeFailResult}"
+											var="user">
+											<p:column headerText="#{dic.dic['RealName']}">
+												<h:outputText value="#{user.realName}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Role']}">
+												<h:outputText value="#{user.roleName}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['IdentityNumber']}">
+												<h:outputText value="#{user.identityNumber}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Description']}">
+												<h:outputText value="#{user.description}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Department']}">
+												<h:outputText value="#{user.department}"></h:outputText>
+											</p:column>
+										</p:dataTable>
+										<p:panel header="#{dic.dic['Export']}" style="width: 120px">
+											<h:commandLink>
+												<p:graphicImage value="/images/csv.png" />
+												<p:dataExporter type="csv" target="fail" fileName="fail" />
+											</h:commandLink>
+
+											<h:commandLink>
+												<p:graphicImage value="/images/xml.png" />
+												<p:dataExporter type="xml" target="fail" fileName="fail" />
+											</h:commandLink>
+										</p:panel>
+									</p:fieldset>
+								</p:outputPanel>
+
+								<p:outputPanel
+									rendered="#{applicationControler.selectedApplication.type.toString() == 'PROMOTE_AUTHORITY'}">
+									<p:fieldset legend="Succeed" toggleable="true"
+										toggleSpeed="200">
+										<p:dataTable value="#{applicationControler.approvedFunctions}"
+											var="function">
+											<p:column headerText="#{dic.dic['System']}">
+												<h:outputText value="#{function.systemName}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Function']}">
+												<h:outputText value="#{function.functionName}"></h:outputText>
+											</p:column>
+										</p:dataTable>
+
+									</p:fieldset>
+									<p:fieldset legend="Failed" toggleable="true" toggleSpeed="200">
+										<p:dataTable value="#{applicationControler.rejectedFunctions}"
+											var="function">
+											<p:column headerText="#{dic.dic['System']}">
+												<h:outputText value="#{function.systemName}"></h:outputText>
+											</p:column>
+											<p:column headerText="#{dic.dic['Function']}">
+												<h:outputText value="#{function.functionName}"></h:outputText>
+											</p:column>
+										</p:dataTable>
+
+									</p:fieldset>
+								</p:outputPanel>
+
+								<p:outputPanel
+									rendered="#{applicationControler.selectedApplication.type.toString() == 'ASK_FOR_LEAVE' and applicationControler.selectedApplication.statue.toString()=='ACCEPTED'}">
+									<p:dataTable value="#{applicationControler.newTempSysAdmin}"
+										var="sysAdmin">
+										<p:column headerText="#{dic.dic['System']}">
+											<h:outputText value="#{sysAdmin.systemName}"></h:outputText>
+										</p:column>
+
+										<p:column headerText="#{dic.dic['Username']}">
+											<h:outputText value="#{sysAdmin.userName}"></h:outputText>
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+					</h:form>
+
+				</p:layoutUnit>s
+
+			</p:layout>
+
+
+			<p:dialog header="#{dic.dic['AcceptApplication']}"
+				widgetVar="acceptApplicationDialog" resizable="false"
+				id="acceptApplicationDlg" modal="true" appendToBody="true">
+				<h:form id="acceptApplicationForm" enctype="multipart/form-data">
+
+
+					<h:panelGrid columns="1" cellpadding="5">
+						<h:outputText value="#{dic.dic['ExpireDate']} :"
+							rendered="#{applicationControler.selectedApplication.type.ordinal() == 0}"></h:outputText>
+
+						<p:calendar value="#{applicationControler.acceptExpireDate}"
+							id="popupCal" required="true"
+							requiredMessage="expire date is required"
+							rendered="#{applicationControler.selectedApplication.type.ordinal() == 0}" />
+
+						<h:outputText value="#{dic.dic['Comment']} : "></h:outputText>
+
+
+
+						<p:inputTextarea style="width:400px;height:200px" maxlength="250"
+							required="true" requiredMessage="comment is required"
+							autoResize="false" value="#{applicationControler.comment}" />
+						<h:outputText value="#{dic.dic['AttachFile']} : "></h:outputText>
+						<p:fileUpload value="#{applicationControler.file}" mode="simple" />
+						<p:separator />
+						<p:commandButton value="#{dic.dic['Submit']}" ajax="false"
+							onclick="statusDialog.show()"
+							oncomplete="acceptApplicationDialog.hide()"
+							actionListener="#{applicationControler.doAcceptApplication}"></p:commandButton>
+
+					</h:panelGrid>
+
+
+				</h:form>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['RejectApplication']}" modal="true"
+				appendToBody="true" widgetVar="rejectApplicationDialog"
+				resizable="false" id="rejectApplicationDlg">
+				<h:form id="rejectApplicationForm" enctype="multipart/form-data">
+
+					<h:panelGrid columns="1" cellpadding="5">
+						<h:outputText value="#{dic.dic['Comment']} : "></h:outputText>
+
+						<p:inputTextarea style="width:400px;height:200px" maxlength="250"
+							required="true" requiredMessage="comment is required"
+							autoResize="false" value="#{applicationControler.comment}" />
+						<h:outputText value="#{dic.dic['AttachFile']} : "></h:outputText>
+						<p:fileUpload value="#{applicationControler.file}" mode="simple" />
+						<p:separator />
+						<p:commandButton value="#{dic.dic['Submit']}" ajax="false"
+							onclick="statusDialog.show()"
+							oncomplete="rejectApplicationDialog.hide()"
+							actionListener="#{applicationControler.doRejectApplication}"></p:commandButton>
+					</h:panelGrid>
+
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="#{dic.dic['StageDetial']}" id="stageDlg"
+				widgetVar="stageDlg_w">
+				<h:form>
+
+
+					<p:panelGrid columns="2">
+						<h:outputText value="#{dic.dic['StageName']} : "></h:outputText>
+						<h:outputText value="#{applicationControler.selectedStage.name}"></h:outputText>
+
+						<h:outputText value="#{dic.dic['StageSerial']} : "></h:outputText>
+						<h:outputText value="#{applicationControler.selectedStage.serial}"></h:outputText>
+
+						<h:outputText value="#{dic.dic['StageDealer']} : "></h:outputText>
+
+						<p:commandLink style="color: #0088cc"
+							value="#{applicationControler.selectedStage.dealerName}"
+							oncomplete="userDetialDlg_w.show()" update=":userDetialDlg"
+							actionListener="#{toolBox.initUserWrap(applicationControler.selectedStage.dealerWrap)}">
+							<f:setPropertyActionListener
+								target="#{globalDlgBean.selectedUserWrap}"
+								value="#{applicationControler.selectedStage.dealerWrap}"></f:setPropertyActionListener>
+						</p:commandLink>
+						<h:outputText value="#{dic.dic['AttachFile']} :" />
+						<h:outputText value="#{dic.dic['NoAttachFile']}"
+							rendered="#{applicationControler.selectedStage.fileId=='' or applicationControler.selectedStage.fileId=='none'}" />
+
+						<p:commandLink id="downloadLink"
+							value="#{dic.dic['ClickToDownload']}" style="color: #0088cc"
+							rendered="#{applicationControler.selectedStage.fileId!='' and applicationControler.selectedStage.fileId!='none'}"
+							ajax="false"
+							actionListener="#{toolBox.processDownload(applicationControler.selectedStage)}">
+							<p:fileDownload value="#{toolBox.downloadFile}" />
+						</p:commandLink>
+
+						<h:outputText value="#{dic.dic['Comment']} : "></h:outputText>
+						<h:outputText
+							value="#{applicationControler.selectedStage.comments}"></h:outputText>
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+
+
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+
+</h:body>
+</html>

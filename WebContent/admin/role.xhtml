@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+		#{roleControler.onRefresh(false)}
+			<h:form id="form">
+				<p:toolbar id="toolbar">
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{dic.dic['NewRole']}"
+							oncomplete="newRoleDialog.show()" icon="ui-icon-star"
+							title="#{dic.dic['CreateNewRole']}" />
+
+					</p:toolbarGroup>
+					<p:toolbarGroup align="right">
+						<p:commandButton value="#{dic.dic['Refresh']}"
+							actionListener="#{roleControler.onRefresh(true)}" update="@all">
+
+						</p:commandButton>
+					</p:toolbarGroup>
+				</p:toolbar>
+				<p:separator></p:separator>
+				<p:dataTable id="dataTable" var="role"
+					value="#{roleControler.roleListModel}" selectionMode="single"
+					selection="#{roleControler.selectedRole}">
+					<p:ajax event="rowSelect" update=":form:toolbar,:roleDlg"
+						oncomplete="roleDialog.show()"
+						listener="#{roleControler.onSelectRole}"></p:ajax>
+					<f:facet name="header">
+                    Role List
+                </f:facet>
+					<p:column sortBy="#{role.name}">
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['RoleName']}" />
+						</f:facet>
+						<h:outputText value="#{role.name}"></h:outputText>
+					</p:column>
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Description']}" />
+						</f:facet>
+						<h:outputText value="#{role.description}"></h:outputText>
+					</p:column>
+
+
+
+				</p:dataTable>
+
+
+			</h:form>
+
+
+			<p:dialog header="#{dic.dic['RoleDetial']}" widgetVar="roleDialog"
+				resizable="false" id="roleDlg" modal="true" appendToBody="true">
+				<h:form id="roleDetailForm">
+					<p:panelGrid id="display" columns="2" cellpadding="4"
+						style="width:100%">
+						<h:outputText value="#{dic.dic['General']} :"></h:outputText>
+						<h:outputText value="#{roleControler.selectedRole.name}" style="width:98%"/>
+						<h:outputText value="#{dic.dic['Description']} :"></h:outputText>
+						<p:inputTextarea value="#{roleControler.selectedRole.description}" style="width:98%" maxlength="250" required="true" requiredMessage="description is required"/>
+					</p:panelGrid>
+					<h:outputText value="#{dic.dic['SelectSystemAndAuthorityMsg']}"></h:outputText>
+					<br />
+					<p:selectOneMenu value="#{roleControler.selectedSystemName}">
+						<p:ajax update="sourceFunction" event="change"
+							listener="#{roleControler.onSystemChanged}" />
+						<f:selectItem itemLabel="Select One" itemValue="" />
+						<f:selectItems value="#{roleControler.systemList}" var="system"
+							itemLabel="#{system.name}" itemValue="#{system.name}" />
+					</p:selectOneMenu>
+					<p:fieldset id="source" legend="Source">
+						<p:dataTable id="sourceFunction" var="function"
+							value="#{roleControler.sourceFunctionModel}">
+							<p:column style="width:20px">
+								<h:outputText id="dragIcon" styleClass="ui-icon ui-icon-arrow-4" />
+								<p:draggable for="dragIcon" revert="true" />
+							</p:column>
+
+							<p:column headerText="#{dic.dic['System']}">
+								<h:outputText value="#{function.systemName}" />
+							</p:column>
+
+							<p:column headerText="#{dic.dic['Function']}">
+								<h:outputText value="#{function.functionName}" />
+							</p:column>
+						</p:dataTable>
+					</p:fieldset>
+					<p:fieldset id="target" legend="Target" style="margin-top:20px">
+						<p:outputPanel id="dropArea">
+							<h:outputText value="#{dic.dic['DropToAddFunctionMsg']}"
+								rendered="#{empty tableBean.droppedCars}"
+								style="font-size:24px;" />
+							<p:dataTable id="targetTable"
+								value="#{roleControler.targetFunctionModel}" var="function">
+								<p:column style="width:20px">
+									<h:outputText id="dragIcon2"
+										styleClass="ui-icon ui-icon-arrow-4" />
+									<p:draggable for="dragIcon2" revert="true" />
+								</p:column>
+								<p:column>
+									#{function.systemName} - #{function.functionName}
+								</p:column>
+
+								<p:column style="width:20px">
+									<p:commandButton value="#{dic.dic['Delete']}" immediate="true"
+										action="#{roleControler.deleteTargetFunction(function)}"
+										update="@form"></p:commandButton>
+								</p:column>
+							</p:dataTable>
+						</p:outputPanel>
+					</p:fieldset>
+
+					<p:droppable for="target" tolerance="touch"
+						activeStyleClass="ui-state-highlight" datasource="sourceFunction">
+						<p:ajax listener="#{roleControler.onFunctionDroped}"
+							update="dropArea sourceFunction" />
+					</p:droppable>
+					<p:commandButton value="#{dic.dic['Update']}" update=":form:dataTable, :growl"
+						oncomplete="roleDialog.hide();"
+						actionListener="#{roleControler.doUpdateRole}" />
+					<p:commandButton value="#{dic.dic['Delete']}"
+						actionListener="#{roleControler.doDeleteRole}"
+						update=":form:dataTable, :growl" icon="ui-icon-trash"
+						oncomplete="roleDialog.hide();" />
+
+				</h:form>
+			</p:dialog>
+
+
+			<p:dialog header="#{dic.dic['CreateNewRole']}" widgetVar="newRoleDialog"
+				resizable="false" id="newRoleDlg" modal="true" appendToBody="true">
+				<h:form id="newRoleForm">
+					<p:panelGrid id="displayNewRole" columns="2" cellpadding="4"
+						style="width:100%">
+						<h:outputText value="#{dic.dic['RoleName']} :"></h:outputText>
+						<p:inputText value="#{roleControler.newRole.name}" required="true" maxlength="50"
+							requiredMessage="Please Enter Rolename!" style="width:98%"/>
+						<h:outputText value="#{dic.dic['Description']} :"></h:outputText>
+						<p:inputTextarea value="#{roleControler.newRole.description}" style="width:98%" maxlength="250" required="true" requiredMessage="description is required"/>
+
+					</p:panelGrid>
+					<h:outputText value="#{dic.dic['SelectSystemAndAuthorityMsg']}"></h:outputText>
+					<br />
+					<p:selectOneMenu value="#{roleControler.selectedSystemName}">
+						<p:ajax update="sourceFunction" event="change"
+							listener="#{roleControler.onSystemChanged}" />
+						<f:selectItem itemLabel="Select One" itemValue="" />
+						<f:selectItems value="#{roleControler.systemList}" var="system"
+							itemLabel="#{system.name}" itemValue="#{system.name}" />
+					</p:selectOneMenu>
+					<p:fieldset id="source" legend="Source">
+						<p:dataTable id="sourceFunction" var="function"
+							value="#{roleControler.sourceFunctionModel}">
+							<p:column style="width:20px">
+								<h:outputText id="dragIcon" styleClass="ui-icon ui-icon-arrow-4" />
+								<p:draggable for="dragIcon" revert="true" />
+							</p:column>
+
+							<p:column headerText="#{dic.dic['System']}">
+								<h:outputText value="#{function.systemName}" />
+							</p:column>
+
+							<p:column headerText="#{dic.dic['Function']}">
+								<h:outputText value="#{function.functionName}" />
+							</p:column>
+						</p:dataTable>
+					</p:fieldset>
+					<p:fieldset id="target" legend="Target" style="margin-top:20px">
+						<p:outputPanel id="dropArea">
+							<h:outputText value="#{dic.dic['DropToAddFunctionMsg']}"
+								rendered="#{empty tableBean.droppedCars}"
+								style="font-size:24px;" />
+							<p:dataTable id="targetTable"
+								value="#{roleControler.targetFunctionModel}" var="function">
+								<p:column style="width:20px">
+									<h:outputText id="dragIcon2"
+										styleClass="ui-icon ui-icon-arrow-4" />
+									<p:draggable for="dragIcon2" revert="true" />
+								</p:column>
+								<p:column>
+									#{function.systemName} - #{function.functionName}
+								</p:column>
+
+								<p:column style="width:20px">
+									<p:commandButton value="#{dic.dic['Delete']}" immediate="true"
+										action="#{roleControler.deleteTargetFunction(function)}"
+										update="@form"></p:commandButton>
+								</p:column>
+							</p:dataTable>
+						</p:outputPanel>
+					</p:fieldset>
+
+					<p:droppable for="target" tolerance="touch"
+						activeStyleClass="ui-state-highlight" datasource="sourceFunction">
+						<p:ajax listener="#{roleControler.onFunctionDroped}"
+							update="dropArea sourceFunction" />
+					</p:droppable>
+					<p:commandButton value="#{dic.dic['Submit']}" update=":form:dataTable, :growl"
+						oncomplete="newRoleDialog.hide(); "
+						actionListener="#{roleControler.doSaveRole}" />
+					<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+
+				</h:form>
+			</p:dialog>
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

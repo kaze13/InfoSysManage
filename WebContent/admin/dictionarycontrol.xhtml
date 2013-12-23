@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			<h:form id="mappingForm">
+
+				<p:dataTable value="#{dictionarySettingControler.dictionaryValues}"
+					widgetVar="mappingTable_w" var="mapping" editable="true"
+					paginator="true" rows="15"
+					paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+					rowsPerPageTemplate="5,10,15"
+					filteredValue="#{dictionarySettingControler.filteredValues}">
+					<p:ajax event="rowEdit"
+						listener="#{dictionarySettingControler.onEdit}" />
+
+					<f:facet name="header">
+						<div style="float: left">
+							<p:commandButton value="#{dic.dic['AddMapping']}"
+								oncomplete="addMappingDlg_w.show()" update=":addMappingDlg"></p:commandButton>
+						</div>
+
+						<div style="float: right">
+							<h:outputText value="Search all fields:" />
+							<p:inputText id="globalFilter"  onkeyup="mappingTable_w.filter()"
+								style="width:150px" />
+						</div>
+					</f:facet>
+					<p:column filterBy="#{mapping.dickey}">
+						<h:outputText value="#{mapping.dickey}"></h:outputText>
+					</p:column>
+
+					<p:column filterBy="#{mapping.value}">
+						<p:cellEditor>
+							<f:facet name="output">
+								<h:outputText value="#{mapping.value}"></h:outputText>
+							</f:facet>
+							<f:facet name="input">
+								<p:inputText value="#{mapping.value}"></p:inputText>
+							</f:facet>
+						</p:cellEditor>
+					</p:column>
+
+					<p:column headerText="#{dic.dic['Edit']}" style="width:50px">
+						<p:rowEditor />
+					</p:column>
+					<p:column style="width: 6%">
+						<p:commandButton value="#{dic.dic['Delete']}"
+							actionListener="#{dictionarySettingControler.delete(mapping)}"
+							update="@form"></p:commandButton>
+					</p:column>
+				</p:dataTable>
+			</h:form>
+
+			<p:dialog widgetVar="addMappingDlg_w" id="addMappingDlg"
+				header="#{dic.dic['AddMapping']}">
+				<h:form>
+					<p:panelGrid columns="2">
+						<h:outputText value="#{dic.dic['Key']} : "></h:outputText>
+						<p:inputText
+							value="#{dictionarySettingControler.newMapping.dickey}" />
+						<h:outputText value="#{dic.dic['Value']} : "></h:outputText>
+						<p:inputText
+							value="#{dictionarySettingControler.newMapping.value}" />
+					</p:panelGrid>
+					<p:commandButton value="#{dic.dic['Apply']}"
+						actionListener="#{dictionarySettingControler.addMapping}"
+						oncomplete="addMappingDlg_w.hide()" update=":mappingForm"></p:commandButton>
+				</h:form>
+			</p:dialog>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

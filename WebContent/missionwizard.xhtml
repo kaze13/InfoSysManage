@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{missionPartitionControler.onRefresh()}
+<script type="text/javascript">
+	function resetWizard() {
+		wizard_w.loadStep(wizard_w.cfg.steps[0], true);
+	}
+</script>
+			<p:layout>
+				<p:layoutUnit position="north" styleClass="nestedUnit"
+					resizable="true">
+					<h:form id="toolbarForm">
+
+						<p:toolbar id="toolbar">
+							<p:toolbarGroup align="left"
+								rendered="#{missionPartitionControler.currentMission.progress != -2
+									and missionPartitionControler.currentMission.progress != -4
+									and missionPartitionControler.currentMission.progress != 100}">
+								<p:commandButton value="#{dic.dic['NewMissionPartition']}"
+									oncomplete="editMissionPartitionDlg_w.show();resetWizard()"
+									actionListener="#{missionPartitionControler.startCreateNewMissionPartition}"
+									update=":editMissionPartitionDlg" icon="ui-icon-star"
+									title="#{dic.dic['CreateNewMissionPartition']}" />
+
+								<p:commandButton value="#{dic.dic['NewDependencyRelation']}"
+									oncomplete="newDependencyRelationDlg_w.show()"
+									update=":form:dataTable, :newDependencyRelationDlg"
+									icon="ui-icon-trash" />
+
+
+							</p:toolbarGroup>
+							<p:toolbarGroup align="right">
+								<p:commandButton value="#{dic.dic['ShowDiscussionForum']}"
+									oncomplete="discussionForumDlg_w.show()"
+									update=":discussionForumDlg"
+									actionListener="#{discussionControler.initDiscussion(missionPartitionControler.currentMission.id)}"></p:commandButton>
+								<p:commandButton value="#{dic.dic['SubmitMission']}"
+									oncomplete="submitMissionDlg_w.show()"
+									update=":submitMissionDlg, @this"
+									rendered="#{missionPartitionControler.currentMission.progress != -2
+									and missionPartitionControler.currentMission.progress != -4
+									and missionPartitionControler.currentMission.progress != 100}"></p:commandButton>
+								<p:commandButton value="#{dic.dic['Refresh']}"
+									actionListener="#{missionPartitionControler.onRefresh()}"
+									update="@all" />
+							</p:toolbarGroup>
+						</p:toolbar>
+					</h:form>
+				</p:layoutUnit>
+				<p:layoutUnit position="center" styleClass="nestedUnit"
+					resizable="true">
+					<p:layout>
+						<p:layoutUnit position="center" resizable="true">
+							<p:layout>
+								<p:layoutUnit position="center" resizable="true"
+									collapsible="true" styleClass="nestedUnit">
+									<h:form id="form">
+										<p:treeTable id="dataTable" var="missionPartition"
+											value="#{missionPartitionControler.root}"
+											selectionMode="single"
+											selection="#{missionPartitionControler.selectedNode}">
+											<p:ajax event="select" update=":detialForm"
+												listener="#{toolBox.initMissionTarget(missionPartitionControler.selectedNode.data)}" />
+
+											<f:facet name="header">
+                    			MissionPartition List
+                			</f:facet>
+											<p:column>
+												<f:facet name="header">
+													<h:outputText value="#{dic.dic['Type']}" />
+												</f:facet>
+												<h:outputText
+													value="#{missionPartitionControler.getTypeStr(missionPartition)}" />
+
+											</p:column>
+											<p:column sortBy="#{missionPartition.title}">
+												<f:facet name="header">
+													<h:outputText value="#{dic.dic['MissionPartitionTitle']}" />
+												</f:facet>
+
+												<h:outputText value="#{missionPartition.title}" />
+
+											</p:column>
+
+											<p:column sortBy="#{missionPartition.leaderName}">
+												<f:facet name="header">
+													<h:outputText value="#{dic.dic['LeaderName']}" />
+												</f:facet>
+												<h:outputText value="#{missionPartition.leaderName}" />
+											</p:column>
+
+											<p:column sortBy="#{missionPartition.progress}">
+												<f:facet name="header">
+													<h:outputText value="#{dic.dic['Progress']}" />
+												</f:facet>
+												<h:outputText value="#{dic.dic['NotCompleted']}"
+													rendered="#{missionPartition.progress >= 0 and missionPartition.progress lt 100}" />
+												<h:outputText value="#{dic.dic['NotDelivered']}"
+													rendered="#{missionPartition.progress == -1}" />
+												<h:outputText value="#{dic.dic['Waiting']}"
+													rendered="#{missionPartition.progress == -2}" />
+
+												<h:outputText value="#{dic.dic['Rejected']}"
+													rendered="#{missionPartition.progress == -3}" />
+												<h:outputText value="#{dic.dic['Submitted']}"
+													rendered="#{missionPartition.progress == -4}" />
+												<h:outputText value="#{dic.dic['Completed']}"
+													rendered="#{missionPartition.progress == 100}" />
+												<h:outputText value="#{dic.dic['SubmissionRejected']}"
+													rendered="#{missionPartition.progress == -6}" />
+											</p:column>
+
+
+										</p:treeTable>
+										<p:separator></p:separator>
+										<p:dataTable id="dependencyTable" var="partitionDependency"
+											value="#{missionPartitionControler.partitionDependencyVoListModel}"
+											selectionMode="single"
+											selection="#{missionPartitionControler.selectedPartitionDependency}">
+											<p:ajax event="rowSelect" update=":dependencyDetialDlg"
+												oncomplete="dependencyDetialDlg_w.show()"></p:ajax>
+											<f:facet name="header">
+                    Partition Dependency List
+                </f:facet>
+
+
+											<p:column sortBy="#{partitionDependency.prePartition.title}">
+												<f:facet name="header">
+													<h:outputText value="#{dic.dic['PreTitle']}" />
+												</f:facet>
+												<h:outputText
+													value="#{partitionDependency.prePartition.title}" />
+											</p:column>
+											<p:column sortBy="#{partitionDependency.postPartition.title}">
+												<f:facet name="header">
+													<h:outputText value="#{dic.dic['PostTitle']}" />
+												</f:facet>
+												<h:outputText
+													value="#{partitionDependency.postPartition.title}" />
+											</p:column>
+
+
+
+
+
+
+										</p:dataTable>
+
+									</h:form>
+								</p:layoutUnit>
+								<p:layoutUnit position="south" resizable="true"
+									collapsible="true" size="65%" styleClass="nestedUnit">
+									<h:form id="detialForm">
+										<h:panelGroup layout="block"
+											rendered="#{missionPartitionControler.selectedNode.data == null}">
+											<div class="well selected-mail-message"
+												style="background-color: #e8e8e8">
+												<h:outputText styleClass="no-mail-message"
+													value="#{dic.dic['NoMissionPartitionSelected']}"></h:outputText>
+											</div>
+										</h:panelGroup>
+										<p:toolbar id="toolbar"
+											rendered="#{missionPartitionControler.selectedNode.data != null and missionPartitionControler.isPartition(missionPartitionControler.selectedNode.data)}">
+											<p:toolbarGroup align="left">
+												<p:commandButton
+													value="#{dic.dic['DeleteMissionPartition']}"
+													rendered="#{missionPartitionControler.selectedNode.data.progress == -1 || missionPartitionControler.selectedNode.data.progress == -3}"
+													actionListener="#{missionPartitionControler.doDeleteMissionPartition}"
+													update=":form,detialForm, :growl,:editMissionPartitionDlg"
+													icon="ui-icon-trash" />
+
+												<p:commandButton value="#{dic.dic['Update']}"
+													update=":editMissionPartitionDlg"
+													oncomplete="editMissionPartitionDlg_w.show();resetWizard();"
+													actionListener="#{missionPartitionControler.startUpdateMissionPartition()}"
+													rendered="#{missionPartitionControler.selectedNode.data.progress == -1 || missionPartitionControler.selectedNode.data.progress == -3}" />
+
+												<p:commandButton value="#{dic.dic['Deliver']}"
+													update=":form:dataTable,detialForm, :growl"
+													rendered="#{missionPartitionControler.selectedNode.data.progress == -1 || missionPartitionControler.selectedNode.data.progress == -3}"
+													actionListener="#{missionPartitionControler.doDeliverMissionPartition}" />
+											</p:toolbarGroup>
+
+											<p:toolbarGroup align="left"
+												rendered="#{missionPartitionControler.selectedNode.data.progress == -4}">
+												<p:commandButton value="#{dic.dic['ViewReport']}"
+													update=":reportDlg"
+													actionListener="#{missionPartitionControler.showPartitionReport}"
+													oncomplete="reportDlg_w.show()" />
+												<p:commandButton value="#{dic.dic['Accept']}"
+													actionListener="#{missionPartitionControler.acceptPartitionReport}"
+													update=":form:dataTable,detialForm, :messages" />
+												<p:commandButton value="#{dic.dic['Reject']}"
+													oncomplete="rejectDlg_w.show()"
+													update=":form:dataTable,detialForm,:rejectDlg, :messages" />
+											</p:toolbarGroup>
+										</p:toolbar>
+										<p:outputPanel
+											rendered="#{missionPartitionControler.selectedNode.data != null}">
+
+											<util:mission
+												mission="#{missionPartitionControler.selectedNode.data}"></util:mission>
+										</p:outputPanel>
+									</h:form>
+								</p:layoutUnit>
+							</p:layout>
+						</p:layoutUnit>
+						<p:layoutUnit position="east" resizable="true" collapsible="true"
+							size="30%" header="#{dic.dic['CurrentMissionInformation']}">
+							<h:form>
+								<p:outputPanel>
+
+									<util:mission
+										mission="#{missionPartitionControler.currentMission}"></util:mission>
+								</p:outputPanel>
+							</h:form>
+						</p:layoutUnit>
+					</p:layout>
+				</p:layoutUnit>
+
+
+			</p:layout>
+
+
+			<p:dialog header="#{dic.dic['DependencyDetial']}" modal="true"
+				appendToBody="true" widgetVar="dependencyDetialDlg_w"
+				resizable="false" id="dependencyDetialDlg">
+				<h:form id="partitionDependencyDetailForm">
+					<p:panelGrid id="display" columns="2" cellpadding="4"
+						style="margin:0 auto;">
+						<h:outputText value="#{dic.dic['DependencyId']} :"></h:outputText>
+						<h:outputText
+							value="#{missionPartitionControler.selectedPartitionDependency.partitionDependency.id}" />
+						<h:outputText value="#{dic.dic['Pre']} : "></h:outputText>
+
+
+						<p:selectOneMenu
+							value="#{missionPartitionControler.selectedPartitionDependency.partitionDependency.prePartitionId}"
+							required="true" requiredMessage="premission required">
+							<f:selectItem itemLabel="Select One" itemValue="" />
+							<f:selectItems
+								value="#{missionPartitionControler.baseMissionPartitionList}"
+								var="partition" itemLabel="#{partition.title}"
+								itemValue="#{partition.id}" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{dic.dic['Post']} : "></h:outputText>
+						<p:selectOneMenu
+							value="#{missionPartitionControler.selectedPartitionDependency.partitionDependency.postPartitionId}"
+							required="true" requiredMessage="postmission required">
+							<f:selectItem itemLabel="Select One" itemValue="" />
+							<f:selectItems
+								value="#{missionPartitionControler.baseMissionPartitionList}"
+								var="partition" itemLabel="#{partition.title}"
+								itemValue="#{partition.id}" />
+						</p:selectOneMenu>
+
+
+						<f:facet name="footer">
+
+							<p:toolbar>
+								<p:toolbarGroup align="left">
+									<p:commandButton value="#{dic.dic['Update']}"
+										update=":form:dataTable,:detialForm,:form:dependencyTable :growl"
+										oncomplete="dependencyDetialDlg_w.hide();"
+										actionListener="#{missionPartitionControler.doUpdatePartitionDependency}" />
+									<p:commandButton value="#{dic.dic['Delete']}"
+										update=":form :detialForm :growl"
+										actionListener="#{missionPartitionControler.doDeletePartitionDependency}"
+										oncomplete="dependencyDetialDlg_w.hide()"></p:commandButton>
+
+								</p:toolbarGroup>
+
+
+
+							</p:toolbar>
+
+						</f:facet>
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['CreateNewDependencyRelation']}"
+				modal="true" appendToBody="true"
+				widgetVar="newDependencyRelationDlg_w" resizable="false"
+				id="newDependencyRelationDlg">
+				<h:form id="newDependencyForm">
+					<p:panelGrid id="displayNewMissionPartition" columns="2"
+						cellpadding="4" style="margin:0 auto;">
+						<h:outputText value="#{dic.dic['Pre']} : "></h:outputText>
+
+
+						<p:selectOneMenu
+							value="#{missionPartitionControler.newPartitionDependency.prePartitionId}"
+							required="true" requiredMessage="premission required">
+							<f:selectItem itemLabel="Select One" itemValue="" />
+							<f:selectItems
+								value="#{missionPartitionControler.baseMissionPartitionList}"
+								var="partition" itemLabel="#{partition.title}"
+								itemValue="#{partition.id}" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{dic.dic['Post']} : "></h:outputText>
+						<p:selectOneMenu
+							value="#{missionPartitionControler.newPartitionDependency.postPartitionId}"
+							required="true" requiredMessage="postmission required">
+							<f:selectItem itemLabel="Select One" itemValue="" />
+							<f:selectItems
+								value="#{missionPartitionControler.baseMissionPartitionList}"
+								var="partition" itemLabel="#{partition.title}"
+								itemValue="#{partition.id}" />
+						</p:selectOneMenu>
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								update=":form:dataTable,:form:dependencyTable, :growl"
+								oncomplete="newDependencyRelationDlg_w.hide(); "
+								actionListener="#{missionPartitionControler.doSaveDependency}" />
+							<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+						</f:facet>
+					</p:panelGrid>
+
+				</h:form>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['MissionPartitionWizard']}" modal="true"
+				appendToBody="true" widgetVar="editMissionPartitionDlg_w"
+				resizable="false" id="editMissionPartitionDlg" width="900">
+				<h:form id="editMissionPartitionForm" enctype="multipart/form-data">
+					<p:wizard flowListener="#{missionPartitionControler.onFlowProcess}"
+						widgetVar="wizard_w">
+						<p:tab id="information" title="#{dic.dic['Information']}">
+							<h:panelGrid id="displayNewMissionPartition" columns="2"
+								cellpadding="4">
+								<h:outputText value="#{dic.dic['MissionPartitionTitle']} :"></h:outputText>
+								<p:inputText
+									value="#{missionPartitionControler.editMissionPartition.title}"
+									maxlength="50" required="true"
+									requiredMessage="Please Enter title!" />
+
+								<h:outputText value="#{dic.dic['LeaderName']} :"></h:outputText>
+
+								<p:autoComplete id="newLeader"
+									value="#{missionPartitionControler.editMissionPartition.leaderName}"
+									completeMethod="#{globalBean.completeUser}" required="true"
+									requiredMessage="Please enter target user name." global="false">
+									<f:validator binding="#{userExistValidator}">
+									</f:validator>
+								</p:autoComplete>
+								<h:outputText value="#{dic.dic['SkipToLast']}: " />
+								<h:selectBooleanCheckbox
+									value="#{missionPartitionControler.skip}" />
+							</h:panelGrid>
+						</p:tab>
+
+						<p:tab id="dependentItems"
+							rendered="#{!missionPartitionControler.updateMode}"
+							title="#{dic.dic['DependentPartitions']}">
+							<h:outputText value="#{dic.dic['DependentItems']} :"></h:outputText>
+							<p:fieldset legend="Pick dependent partitions." toggleable="true"
+								toggleSpeed="100">
+								<p:pickList converter="missionPartitionConverter"
+									value="#{missionPartitionControler.dependencyDual}"
+									var="partition" itemLabel="#{partition.title}"
+									itemValue="#{partition}" />
+							</p:fieldset>
+							<h:outputText value="#{dic.dic['SkipToLast']} : " />
+							<h:selectBooleanCheckbox
+								value="#{missionPartitionControler.skip}" />
+						</p:tab>
+						<p:tab id="dependentSystems"
+							title="#{dic.dic['DependentSystems']}">
+
+							<p:fieldset legend="Pick dependent systems." toggleable="true"
+								toggleSpeed="100">
+								<p:pickList converter="systemConverter"
+									value="#{missionPartitionControler.dependentSystem}"
+									var="system" itemLabel="#{system.name}" itemValue="#{system}" />
+							</p:fieldset>
+							<h:outputText value="#{dic.dic['SkipToLast']} : " />
+							<h:selectBooleanCheckbox
+								value="#{missionPartitionControler.skip}" />
+						</p:tab>
+						<p:tab id="dependentFunctions"
+							title="#{dic.dic['DependentFunctions']}">
+							<p:fieldset id="source" legend="Source">
+								<p:dataTable id="sourceFunction" var="function"
+									value="#{missionPartitionControler.sourceFunctionModel}">
+									<p:column style="width:20px">
+										<h:outputText id="dragIcon"
+											styleClass="ui-icon ui-icon-arrow-4" />
+										<p:draggable for="dragIcon" revert="true" />
+									</p:column>
+
+									<p:column headerText="#{dic.dic['System']}">
+										<h:outputText value="#{function.systemName}" />
+									</p:column>
+
+									<p:column headerText="#{dic.dic['Function']}">
+										<h:outputText value="#{function.functionName}" />
+									</p:column>
+								</p:dataTable>
+							</p:fieldset>
+							<p:fieldset id="target" legend="Target" style="margin-top:20px">
+								<p:outputPanel id="dropArea">
+									<h:outputText value="!!!Drop here!!!"
+										rendered="#{empty missionPartitionControler.targetFunctionModel}"
+										style="font-size:24px;" />
+									<p:dataTable id="targetTable"
+										value="#{missionPartitionControler.targetFunctionModel}"
+										var="function">
+										<p:column style="width:20px">
+											<h:outputText id="dragIcon2"
+												styleClass="ui-icon ui-icon-arrow-4" />
+											<p:draggable for="dragIcon2" revert="true" />
+										</p:column>
+										<p:column>
+									#{function.systemName} - #{function.functionName}
+								</p:column>
+
+										<p:column style="width:20px">
+											<p:commandButton value="#{dic.dic['Delete']}"
+												immediate="true"
+												action="#{missionPartitionControler.deleteTargetFunction(function)}"
+												update="@form"></p:commandButton>
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+
+								<p:droppable for="target" tolerance="touch"
+									activeStyleClass="ui-state-highlight"
+									datasource="sourceFunction">
+									<p:ajax
+										listener="#{missionPartitionControler.onFunctionDroped}"
+										update="dropArea sourceFunction" />
+								</p:droppable>
+							</p:fieldset>
+							<h:outputText value="#{dic.dic['SkipToLast']}: " />
+							<h:selectBooleanCheckbox
+								value="#{missionPartitionControler.skip}" />
+						</p:tab>
+						<p:tab id="description" title="#{dic.dic['Description']}">
+
+							<h:outputText value="#{dic.dic['Description']} :"></h:outputText>
+
+							<p:inputTextarea style="width:98%;height:200px"
+								autoResize="false" maxlength="250" required="true"
+								requiredMessage="description is required"
+								value="#{missionPartitionControler.editMissionPartition.description}" />
+							<p:separator />
+							<h:outputLabel for="attach" value="#{dic.dic['AttachFile']} : "></h:outputLabel>
+							<p:fileUpload id="attach"
+								value="#{missionPartitionControler.file}" mode="simple" />
+							<p:commandButton value="#{dic.dic['Submit']}" ajax="false"
+								onclick="statusDialog.show()"
+								rendered="#{missionPartitionControler.addMode}"
+								oncomplete="editMissionPartitionDlg_w.hide(); "
+								actionListener="#{missionPartitionControler.doSaveMissionPartition}" />
+							<p:commandButton value="#{dic.dic['Update']}" ajax="false"
+								onclick="statusDialog.show()"
+								rendered="#{missionPartitionControler.updateMode}"
+								oncomplete="editMissionPartitionDlg_w.hide(); "
+								actionListener="#{missionPartitionControler.doUpdateMissionPartition}" />
+							<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+						</p:tab>
+					</p:wizard>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="#{dic.dic['ReportDetial']}" widgetVar="reportDlg_w"
+				id="reportDlg" resizable="false" dynamic="true" modal="true"
+				appendToBody="true">
+				<h:form>
+					<p:panelGrid columns="2">
+						<h:outputText value="#{dic.dic['PartitionReport']}: "></h:outputText>
+						<h:outputText
+							value="#{toolBox.printFormatString(missionPartitionControler.selectedNode.data.taskReport)}"
+							style="white-space:pre"></h:outputText>
+						<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+						<h:outputText value="#{dic.dic['NoAttachFile']}"
+							rendered="#{missionPartitionControler.selectedNode.data.taskReport.fileId=='' || missionPartitionControler.selectedNode.data.taskReport.fileId=='none'}" />
+
+						<p:commandLink value="#{dic.dic['ClickToDownload']}"
+							style="color: #0088cc"
+							rendered="#{missionPartitionControler.selectedNode.data.taskReport.fileId!='' and missionPartitionControler.selectedNode.data.taskReport.fileId!='none'}"
+							ajax="false"
+							actionListener="#{missionPartitionControler.processDownload}">
+							<p:fileDownload value="#{missionPartitionControler.downloadFile}" />
+						</p:commandLink>
+					</p:panelGrid>
+					<p:separator></p:separator>
+					<h:outputText value="#{dic.dic['UnitReportList']} :"
+						style="font-size:18px"></h:outputText>
+					<p:dataTable
+						value="#{missionPartitionControler.selectedNode.data.unitList}"
+						var="unit">
+						<p:ajax event="rowToggle"
+							listener="#{missionPartitionControler.onReportToggle}"
+							update="expansion" />
+
+						<p:column style="width:4%">
+							<p:rowToggler />
+						</p:column>
+						<p:column>
+							<h:outputText value="#{unit.title}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{unit.leaderName}"></h:outputText>
+						</p:column>
+
+						<p:rowExpansion id="expansion">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{dic.dic['ReportDetial']} : "></h:outputText>
+								<h:outputText
+									value="#{toolBox.printFormatString(unit.taskReport)}"
+									style="white-space:pre"></h:outputText>
+								<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+								<h:outputText value="#{dic.dic['NoAttachFile']}"
+									rendered="#{unit.taskReport.fileId=='none'}" />
+
+								<p:commandLink value="#{dic.dic['ClickToDownload']}"
+									style="color: #0088cc"
+									rendered="#{unit.taskReport.fileId!='none'}" ajax="false"
+									actionListener="#{missionPartitionControler.processDownload}">
+									<p:fileDownload
+										value="#{missionPartitionControler.downloadFile}" />
+								</p:commandLink>
+							</h:panelGrid>
+
+						</p:rowExpansion>
+					</p:dataTable>
+				</h:form>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['RejectDetial']}" widgetVar="rejectDlg_w"
+				id="rejectDlg" resizable="false" modal="true" appendToBody="true"
+				width="400">
+				<h:form>
+					<h:panelGrid columns="1">
+						<h:outputText value="#{dic.dic['Report']} : " />
+						<p:inputTextarea style="width:350px;height:200px" maxlength="250"
+							required="true" requiredMessage="report is required"
+							autoResize="false" value="#{missionPartitionControler.report}" />
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								oncomplete="rejectDlg_w.hide()"
+								update=":form:dataTable,:detialForm"
+								actionListener="#{missionPartitionControler.submitRejectReport}"></p:commandButton>
+
+						</f:facet>
+					</h:panelGrid>
+
+				</h:form>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['SubmitTheMission']}"
+				widgetVar="submitMissionDlg_w" id="submitMissionDlg" modal="true"
+				appendToBody="true">
+				<h:form id="reportForm" enctype="multipart/form-data">
+					<p:panelGrid columns="1" cellpadding="4" style="margin:0 auto;">
+						<p:row>
+							<p:inputTextarea value="#{missionPartitionControler.report}"
+								counter="display" maxlength="250" required="true"
+								requiredMessage="title is required" autoResize="false"
+								counterTemplate="{0} characters remaining"
+								style="width:300px;height:300px" />
+							<br></br>
+							<h:outputText id="display" />
+						</p:row>
+						<p:row>
+							<h:outputText value="#{dic.dic['AttachFile']} :"></h:outputText>
+							<br></br>
+							<p:fileUpload value="#{missionPartitionControler.file}"
+								mode="simple" />
+						</p:row>
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								actionListener="#{missionPartitionControler.submitMission}"
+								oncomplete="submitMissionDlw_w.hide()" ajax="false"
+								onclick="statusDialog.show()" />
+
+						</f:facet>
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+
+				<ui:include src="/resources/util/discussion.xhtml" />
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

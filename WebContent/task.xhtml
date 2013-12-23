@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{taskControler.onRefresh()}
+			<link rel="stylesheet" type="text/css" href="css/message.css"></link>
+			<script type="text/javascript" src="js/func.js"></script>
+			<p:layout>
+
+				<p:layoutUnit position="center" styleClass="nestedUnit"
+					resizable="true" binding="#{taskControler.dataUnit}">
+					<p:tabView id="tabView">
+
+						<p:tab title="#{dic.dic['TaskList']}">
+
+							<h:form id="form">
+
+								<p:toolbar id="toolbar">
+									<p:toolbarGroup align="left">
+
+										<p:menuButton value="#{dic.dic['New']}">
+											<p:menuitem value="#{dic.dic['TodoTask']}" update=":newTaskDlg"
+												oncomplete="newTaskDlg_w.show()" />
+
+
+										</p:menuButton>
+
+									</p:toolbarGroup>
+									<p:toolbarGroup align="right">
+
+										<p:commandButton style="visibility: hidden" />
+										<p:menuButton value="#{dic.dic['Layout']}">
+											<p:menuitem value="#{dic.dic['Horizontal']}" update="@all"
+												actionListener="#{taskControler.changeLayoutHorizontal}" />
+											<p:menuitem value="#{dic.dic['Vertical']}" update="@all"
+												actionListener="#{taskControler.changeLayoutVertical}" />
+										</p:menuButton>
+										<p:commandButton value="#{dic.dic['Refresh']}"
+											actionListener="#{taskControler.onRefresh()}" update="@all" />
+									</p:toolbarGroup>
+								</p:toolbar>
+								<p:dataTable id="dataTable" var="task"
+									value="#{taskControler.taskListModel}"
+									sortBy="#{task.startTime}" sortOrder="descending"
+									selectionMode="single" styleClass="hide-column-names"
+									selection="#{taskControler.selectedTask}"
+									rowStyleClass="#{task.statue.toString()=='UNACCEPTED' ? 'unreadMessage' : 'readMessage' }">
+									<p:ajax event="rowSelect"
+										update=":detialForm,:tabView:form:toolbar"
+										listener="#{toolBox.initTask(taskControler.selectedTask)}" />
+									<p:column sortBy="#{task.title}">
+										<h:outputText value="#{toolBox.abstraction(task.title,30)}" />
+
+
+									</p:column>
+
+									<p:column sortBy="#{task.type}">
+
+										<h:outputText value="#{task.type}" />
+									</p:column>
+
+									<p:column
+										sortBy="#{taskControler.abstraction(task.description,150)}">
+
+										<h:outputText value="#{task.description}" />
+
+									</p:column>
+
+									<p:column sortBy="#{task.startTime}">
+
+										<h:outputText value="#{toolBox.convertTime(task.startTime)}" />
+									</p:column>
+									<p:column sortBy="#{task.statue}">
+
+										<h:outputText value="#{task.statue}" />
+
+									</p:column>
+
+								</p:dataTable>
+
+
+							</h:form>
+
+
+
+						</p:tab>
+
+						<p:tab title="#{dic.dic['Calendar']}">
+							<h:form id="calendarForm">
+
+								<p:growl id="messages" showDetail="true" />
+
+								<p:schedule id="calendar" value="#{taskControler.eventModel}"
+									widgetVar="myschedule">
+
+
+									<p:ajax event="eventSelect"
+										listener="#{taskControler.onEventSelect}"
+										update="eventDetails,:detialForm" />
+									<p:ajax event="eventMove"
+										listener="#{taskControler.onEventMove}" update="messages" />
+									<p:ajax event="eventResize"
+										listener="#{taskControler.onEventResize}" update="messages" />
+
+								</p:schedule>
+
+								<p:dialog widgetVar="eventDialog" header="#{dic.dic['EventDetial']}"
+									showEffect="clip" hideEffect="clip">
+									<h:panelGrid id="eventDetails" columns="2">
+										<h:outputLabel for="title" value="#{dic.dic['Title']}:" />
+										<p:inputText id="title" value="#{taskControler.event.title}"
+											required="true" />
+
+										<h:outputLabel for="from" value="#{dic.dic['From']}:" />
+										<p:inputMask id="from"
+											value="#{taskControler.event.startDate}" mask="99/99/9999">
+											<f:convertDateTime pattern="dd/MM/yyyy" />
+										</p:inputMask>
+
+										<h:outputLabel for="to" value="#{dic.dic['To']} :" />
+										<p:inputMask id="to" value="#{taskControler.event.endDate}"
+											mask="99/99/9999">
+											<f:convertDateTime pattern="dd/MM/yyyy" />
+										</p:inputMask>
+
+										<h:outputLabel for="allDay" value="#{dic.dic['AllDay']} :" />
+										<h:selectBooleanCheckbox id="allDay"
+											value="#{taskControler.event.allDay}" />
+
+										<p:commandButton type="reset" value="#{dic.dic['Reset']}" />
+										<p:commandButton value="#{dic.dic['Save']}"
+											actionListener="#{taskControler.addEvent}"
+											oncomplete="myschedule.update();eventDialog.hide();" />
+									</h:panelGrid>
+								</p:dialog>
+
+							</h:form>
+						</p:tab>
+
+					</p:tabView>
+				</p:layoutUnit>
+
+				<p:layoutUnit position="south" collapsible="true"
+					binding="#{taskControler.detialUnit}" styleClass="nestedUnit"
+					size="65%" resizable="true">
+
+					<h:form id="detialForm">
+						<h:panelGroup layout="block"
+							rendered="#{taskControler.selectedTask == null}">
+							<div class="well selected-mail-message"
+								style="background-color: #e8e8e8">
+								<h:outputText styleClass="no-mail-message"
+									value="#{dic.dic['NoTaskSelected']}"></h:outputText>
+							</div>
+						</h:panelGroup>
+						<p:toolbar id="toolbar"
+							rendered="#{taskControler.selectedTask != null}">
+							<p:toolbarGroup align="left"
+								rendered="#{taskControler.selectedTask.statue.ordinal()==2}">
+								<p:commandButton value="#{dic.dic['Accept']}"
+									action="#{taskControler.acceptTask}" update="@all" />
+								<p:commandButton value="#{dic.dic['Reject']}"
+									oncomplete="rejectTaskDlg_w.show()" />
+							</p:toolbarGroup>
+							<p:toolbarGroup align="left"
+								rendered="#{taskControler.selectedTask.statue.ordinal()==0 || taskControler.selectedTask.statue.ordinal()==7}">
+
+								<p:commandLink value="*Click here to enter the task*"
+									style="font-size : 20px;color: #0088cc"
+									action="#{taskControler.redirect}"
+									rendered="#{taskControler.selectedTask.type.toString() != 'TODO'}"
+									onclick="statusDialog.show()" />
+								<p:commandButton value="#{dic.dic['Complete']}"
+									actionListener="#{taskControler.completeTODOTask}"
+									update="@all"
+									rendered="#{taskControler.selectedTask.type.toString() == 'TODO'}"></p:commandButton>
+								<p:commandButton value="#{dic.dic['Abort']}"
+									actionListener="#{taskControler.abortTODOTask}" update="@all"
+									rendered="#{taskControler.selectedTask.type.toString() == 'TODO'}"></p:commandButton>
+							</p:toolbarGroup>
+						</p:toolbar>
+
+						<p:outputPanel rendered="#{taskControler.selectedTask != null}">
+							<h:panelGrid columns="2" cellpadding="4"
+								style="font-weight:bold;font-size:20px">
+								<h:outputText value="#{taskControler.selectedTask.title}" />
+							</h:panelGrid>
+							<p:separator />
+							<h:panelGrid columns="2" cellpadding="4">
+								<h:outputLabel for="taskType" value="#{dic.dic['Type']} :" />
+								<h:outputText id="taskType"
+									value="#{taskControler.selectedTask.type}" />
+
+
+								<h:outputLabel for="detialTime" value="#{dic.dic['Time']} :" />
+								<h:outputText id="detialTime"
+									value="#{toolBox.convertTime(taskControler.selectedTask.startTime)}" />
+
+								<h:outputLabel for="taskStatue" value="#{dic.dic['Statue']} :" />
+								<h:outputText id="taskStatue"
+									value="#{taskControler.selectedTask.statue}" />
+
+
+							</h:panelGrid>
+							<p:separator />
+							<div class="mail-body-container"
+								style="background-color: #e8e8e8">
+								<h:outputText styleClass="plain-body-container"
+									value="#{taskControler.selectedTask.description}"></h:outputText>
+							</div>
+							<p:outputPanel>
+
+								<util:mission mission="#{taskControler.selectedTask.taskObject}"></util:mission>
+							</p:outputPanel>
+						</p:outputPanel>
+					</h:form>
+				</p:layoutUnit>
+
+			</p:layout>
+
+
+			<p:dialog header="#{dic.dic['RejectTask']}" widgetVar="rejectTaskDlg_w"
+				width="400" resizable="false" id="rejectApplicationDlg" modal="true"
+				appendToBody="true">
+				<h:form id="rejecTaskForm">
+
+					<h:panelGrid columns="1" cellpadding="5">
+						<h:outputText value="#{dic.dic['Comment']} : "></h:outputText>
+
+						<p:inputTextarea style="width:350px;height:200px" maxlength="250"
+							autoResize="false" value="#{taskControler.comment}" />
+						<p:separator />
+
+						<p:commandButton value="#{dic.dic['Submit']}" update="@all"
+							oncomplete="rejectTaskDlg_w.hide()"
+							actionListener="#{taskControler.rejectTask}"></p:commandButton>
+					</h:panelGrid>
+
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="#{dic.dic['NewTodoTask']}" widgetVar="newTaskDlg_w"
+				id="newTaskDlg" modal="true" appendToBody="true" width="400">
+				<h:form>
+					<h:panelGrid columns="2" cellpadding="5">
+						<h:outputLabel for="todoTitle" value="#{dic.dic['Title']} :"></h:outputLabel>
+						<p:inputText id="todoTitle" value="#{taskControler.newTask.title}" maxlength="50"
+							required="true" requiredMessage="Title is required"></p:inputText>
+						<h:outputLabel for="todoStartTime" value="#{dic.dic['StartTime']} :"></h:outputLabel>
+						<p:calendar id="todoStartTime" required="true"
+							requiredMessage="start time is required"
+							value="#{taskControler.newStartTime}" pattern="MM/dd/yyyy HH:mm" />
+						<h:outputLabel for="todoEndTime" value="#{dic.dic['EndTime']} :"></h:outputLabel>
+						<p:calendar id="todoEndTime" value="#{taskControler.newEndTime}"
+							required="true" requiredMessage="end time is required"
+							pattern="MM/dd/yyyy HH:mm" />
+					</h:panelGrid>
+					<p:separator></p:separator>
+					<h:outputLabel value="#{dic.dic['Description']} :"></h:outputLabel>
+
+					<p:inputTextarea style="width:98%;height:200px" autoResize="false"
+						maxlength="250" value="#{taskControler.newTask.description}" />
+					<p:separator></p:separator>
+					<p:commandButton value="#{dic.dic['Submit']}"
+						update=":tabView:form:dataTable,:tabView:calendarForm, :growl"
+						oncomplete="newTaskDlg_w.hide(); "
+						actionListener="#{taskControler.doSaveTODOTask}" />
+					<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="#{dic.dic['NewAssignment']}" widgetVar="newAssignmentDlg_w"
+				id="newAssignmentDlg">
+				<h:form>
+					<h:panelGrid columns="2" cellpadding="5">
+						<h:outputLabel for="assignTitle" value="#{dic.dic['Title']} :"></h:outputLabel>
+						<p:inputText id="assignTitle" maxlength="50"
+							value="#{taskControler.newTask.title}"></p:inputText>
+						<h:outputLabel for="assignDealer" value="#{dic.dic['Dealer']} :"></h:outputLabel>
+						<p:inputText id="assignDealer"
+							value="#{taskControler.newTask.ownerName}"></p:inputText>
+						<h:outputLabel for="assignStartTime" value="#{dic.dic['StartTime']} :"></h:outputLabel>
+						<p:calendar id="assignStartTime"
+							value="#{taskControler.newStartTime}" pattern="MM/dd/yyyy HH:mm" />
+						<h:outputLabel for="assignEndTime" value="#{dic.dic['EndTime']} :"></h:outputLabel>
+						<p:calendar id="assignEndTime" value="#{taskControler.newEndTime}"
+							pattern="MM/dd/yyyy HH:mm" />
+					</h:panelGrid>
+					<p:separator></p:separator>
+					<h:outputLabel value="#{dic.dic['Description']} :"></h:outputLabel>
+					<p:editor value="#{taskControler.newTask.description}"></p:editor>
+					<p:separator></p:separator>
+					<p:commandButton value="#{dic.dic['Submit']}"
+						update=":tabView:form:dataTable,:tabView:calendarForm, :growl"
+						oncomplete="newTaskDlg_w.hide(); "
+						actionListener="#{taskControler.doSaveTODOTask}" />
+					<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+				</h:form>
+			</p:dialog>
+
+
+
+
+
+
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

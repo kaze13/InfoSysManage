@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<f:view contentType="text/html">
+	<h:head>
+		<f:facet name="first">
+			<meta http-equiv="X-UA-Compatible" content="EmulateIE8" />
+			<meta content='text/html; charset=UTF-8' http-equiv="Content-Type" />
+			<title>system</title>
+		</f:facet>
+		<link rel="stylesheet" type="text/css"
+			href="#{facesContext.externalContext.requestContextPath}/css/default.css"></link>
+		<link rel="stylesheet" type="text/css"
+			href="#{facesContext.externalContext.requestContextPath}/css/syntaxhighlighter.css"></link>
+		<link rel="stylesheet" type="text/css"
+			href="#{facesContext.externalContext.requestContextPath}/css/theme.css"></link>
+		<style type="text/css">
+.ui-layout-north {
+	z-index: 20 !important;
+	overflow: visible !important;;
+}
+
+.ui-layout-north .ui-layout-unit-content {
+	overflow: visible !important;
+}
+</style>
+	</h:head>
+	<h:body>
+
+		<h:form id="poll">
+			<p:poll interval="60" listener="#{mainPageControler.checkNewEvent()}"
+				global="false" update="reminderDlg" />
+
+			<p:dialog id="reminderDlg" widgetVar="reminderDlg_w" dynamic="false"
+				resizable="false" closable="true" header="#{dic.dic['NewEvent']}"
+				appendToBody="true" position="top">
+				<h:panelGrid columns="1">
+					<h:outputLink value="/rd34/commonMessage.jsf"
+						onclick="statusDialog.show()"
+						rendered="#{mainPageControler.newMessagesNumber != 0}">You have #{mainPageControler.newMessagesNumber} new messages</h:outputLink>
+					<h:outputLink value="/rd34/notification.jsf"
+						onclick="statusDialog.show()"
+						rendered="#{mainPageControler.newNotificationsNumber != 0}">You have #{mainPageControler.newNotificationsNumber} new notifications</h:outputLink>
+					<h:outputLink value="/rd34/application.jsf"
+						onclick="statusDialog.show()"
+						rendered="#{mainPageControler.newApplicationsNumber != 0}">You have #{mainPageControler.newApplicationsNumber} new applications</h:outputLink>
+					<h:outputLink value="/rd34/task.jsf" onclick="statusDialog.show()"
+						rendered="#{mainPageControler.newTasksNumber != 0}">You have #{mainPageControler.newTasksNumber} new tasks</h:outputLink>
+				</h:panelGrid>
+
+			</p:dialog>
+		</h:form>
+
+
+		<p:ajaxStatus onstart="statusDialog.show();"
+			oncomplete="statusDialog.hide();" />
+
+
+
+		<p:dialog modal="true" widgetVar="statusDialog"
+			header="#{dic.dic['Processing']}" appendToBody="true"
+			draggable="false" closable="false">
+			<p:graphicImage value="/images/ajaxloadingbar.gif" />
+		</p:dialog>
+
+
+
+		<p:layout fullPage="true">
+			<p:layoutUnit id="top" position="north" size="50">
+				<ui:insert name="heading">
+					<ui:include src="/template/header.xhtml" />
+				</ui:insert>
+			</p:layoutUnit>
+
+			<p:layoutUnit id="left" position="west" resizable="false" size="200"
+				collapsible="true" header="#{dic.dic['Menu']}">
+				<ui:insert name="sidebarLeft">
+					<ui:include src="/template/sidebarLeft.xhtml" />
+				</ui:insert>
+			</p:layoutUnit>
+
+			<p:layoutUnit position="center">
+
+				<ui:insert name="content" />
+			</p:layoutUnit>
+
+
+
+
+		</p:layout>
+
+		<p:dialog header="#{dic.dic['CreateNewMessage']}" resizable="false"
+			draggable="true" widgetVar="_newMessageDlg_w" id="_newMessageDlg"
+			width="530" appendToBody="true">
+			<h:form enctype="multipart/form-data">
+				<h:panelGrid columns="2" cellpadding="4">
+					<h:outputText value="#{dic.dic['To']} : "></h:outputText>
+					<h:outputText value="#{messageControler.newMessage.recieverName}"></h:outputText>
+					<h:outputText value="#{dic.dic['Title']} : "></h:outputText>
+					<p:inputText value="#{messageControler.newMessage.title}" />
+
+					<h:outputText value="#{dic.dic['AttachFile']} : "></h:outputText>
+					<p:fileUpload value="#{messageControler.file}" mode="simple" />
+				</h:panelGrid>
+
+
+				<p:separator />
+
+				<p:inputTextarea style="width:98%;height:200px" autoResize="false"
+					value="#{messageControler.newMessage.body}" />
+
+				<p:separator />
+				<p:commandButton value="#{dic.dic['Send']}"
+					update=":form:dataTable, :growl" ajax="false"
+					oncomplete="newMessageDialog.hide(); "
+					actionListener="#{messageControler.doSendMessage}"
+					onclick="statusDialog.show()" />
+				<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+
+			</h:form>
+		</p:dialog>
+		<p:dialog id="userDetialDlg" header="#{dic.dic['UserProfile']}"
+			widgetVar="userDetialDlg_w" appendToBody="true">
+			<util:user userWrap="#{globalDlgBean.selectedUserWrap}" />
+		</p:dialog>
+
+		<p:dialog id="systemDetialDlg" header="#{dic.dic['SystemProfile']}"
+			widgetVar="systemDetialDlg_w" appendToBody="true">
+			<util:system system="#{globalDlgBean.selectedSystem}" />
+		</p:dialog>
+
+		<p:dialog id="missionDetialDlg"
+			header="#{dic.dic['MissionObjectProfile']}"
+			widgetVar="missionDetialDlg_w" appendToBody="true">
+			<h:form>
+				<util:mission mission="#{globalDlgBean.selectedMissionObject}"></util:mission>
+			</h:form>
+		</p:dialog>
+
+
+
+		<p:growl id="messages" showDetail="true" autoUpdate="true" life="7000" />
+	</h:body>
+</f:view>
+</html>

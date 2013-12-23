@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			<h:form>
+
+
+				<div style="width: 40%">
+					<p:panel header="#{dic.dic['BugDetial']}" toggleable="true" closable="false"
+						toggleSpeed="200" closeSpeed="200">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{dic.dic['ID']} : " />
+							<h:outputText value="#{fixBugControler.bugReport.id}" />
+
+							<h:outputText value="#{dic.dic['System']} : " />
+							<h:outputText value="#{fixBugControler.bugReport.systemName}" />
+
+							<h:outputText value="#{dic.dic['Founder']} : " />
+							<h:outputText value="#{fixBugControler.bugReport.founderName}" />
+
+							<h:outputText value="#{dic.dic['Report']} : " />
+							<h:outputText value="#{fixBugControler.bugReport.report}" />
+
+							<h:outputText value="#{dic.dic['AttachFile']} : " />
+
+							<h:outputText value="#{dic.dic['NoAttachFile']}"
+								rendered="#{fixBugControler.bugReport.fileId=='none'}" />
+							<p:commandLink id="downloadLink" value="#{dic.dic['ClickToDownload']}" style ="color: #0088cc"
+								rendered="#{fixBugControler.bugReport.fileId!='none'}" ajax="false"
+								actionListener="#{fixBugControler.processDownload}">
+								<p:fileDownload value="#{fixBugControler.downloadFile}" />
+							</p:commandLink>
+						</h:panelGrid>
+					</p:panel>
+
+					<p:panel header="#{dic.dic['SystemUnit']}" toggleable="true" closable="false"
+						toggleSpeed="200" closeSpeed="200">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{dic.dic['Name']} : " />
+							<h:outputText value="#{fixBugControler.system.name}" />
+
+							<h:outputText value="#{dic.dic['Url']} : " />
+							<h:outputText value="#{fixBugControler.system.url}" />
+
+							<h:outputText value="#{dic.dic['Description']} : " />
+							<h:outputText value="#{fixBugControler.system.description}" />
+
+							<h:outputText value="#{dic.dic['Duration']} : " />
+							<h:outputText value="#{fixBugControler.system.duration}" />
+						</h:panelGrid>
+					</p:panel>
+
+					<p:separator></p:separator>
+
+					<p:outputPanel>
+
+						<h:outputLabel value="#{dic.dic['Comment']} :" />
+						<br></br>
+						<p:inputTextarea value="#{fixBugControler.comment}" maxlength="250" required="true" requiredMessage="comment is required"
+							rendered="#{fixBugControler.bugReport.isFixed == 0}" style="width:98%;height:100px"></p:inputTextarea>
+						<h:outputText value="#{fixBugControler.bugReport.fixReport}"
+							escape="false" style="white-space:pre"
+							rendered="#{fixBugControler.bugReport.isFixed == 1}"></h:outputText>
+						<p:toolbar>
+							<p:toolbarGroup>
+								<p:commandButton value="#{dic.dic['Submit']}" update="@form"
+									actionListener="#{fixBugControler.submitFix}"
+									rendered="#{fixBugControler.bugReport.isFixed == 0}"></p:commandButton>
+
+							</p:toolbarGroup>
+
+						</p:toolbar>
+
+					</p:outputPanel>
+				</div>
+			</h:form>
+
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

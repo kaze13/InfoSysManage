@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	#{sysAdminControler.conversationBegin()}
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<h:form id="form">
+		<a href="../index.jsf">index</a>
+		<p:dataTable id="dataTable" var="system"
+			value="#{sysAdminControler.systemListModel}" paginator="true"
+			rows="10" selectionMode="single"
+			selection="#{sysAdminControler.selectedSystem}"
+			paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+			<f:facet name="header">
+                    System List
+                </f:facet>
+			<p:column sortBy="#{system.name}">
+				<f:facet name="header">
+					<h:outputText value="Systemname" />
+				</f:facet>
+				<p:commandLink value="#{system.name}"
+					update=":systemDetailForm:display"
+					oncomplete="systemDialog_w.show()" title="View">
+					<f:setPropertyActionListener value="#{system}"
+						target="#{sysAdminControler.selectedSystem}" />
+				</p:commandLink>
+			</p:column>
+
+			<p:column sortBy="#{system.url}">
+				<f:facet name="header">
+					<h:outputText value="url" />
+				</f:facet>
+				<h:outputText value="#{system.url}" />
+			</p:column>
+
+			<p:column sortBy="#{system.description}">
+				<f:facet name="header">
+					<h:outputText value="description" />
+				</f:facet>
+				<h:outputText value="#{system.description}" />
+			</p:column>
+
+			<p:column sortBy="#{system.duration}">
+				<f:facet name="header">
+					<h:outputText value="duration" />
+				</f:facet>
+				<h:outputText value="#{system.duration}" />
+			</p:column>
+
+			<p:column>
+				<f:facet name="header">
+					<h:outputText value="status" />
+				</f:facet>
+				<h:outputText value="#{system.status}"></h:outputText>
+
+			</p:column>
+
+
+
+		</p:dataTable>
+
+		<p:commandButton value="logoff" action="#{sysAdminControler.logoff}"
+			update="form" />
+	</h:form>
+
+
+	<p:dialog id="systemDialog" header="System Detail"
+		widgetVar="systemDialog_w" resizable="false">
+		<h:form id="systemDetailForm">
+			<p:panelGrid id="display" columns="2" cellpadding="4"
+				style="margin:0 auto;">
+				<h:outputText value="System name :"></h:outputText>
+				<h:outputText value="#{sysAdminControler.selectedSystem.name}" />
+
+				<h:outputText value="url :"></h:outputText>
+				<h:outputText value="#{sysAdminControler.selectedSystem.url}" />
+
+				<h:outputText value="description :"></h:outputText>
+				<h:outputText
+					value="#{sysAdminControler.selectedSystem.description}" />
+
+				<h:outputText value="war path :"></h:outputText>
+				<h:outputText value="#{sysAdminControler.selectedSystem.warPath}" />
+
+				<h:outputText value="duration :"></h:outputText>
+				<h:outputText value="#{sysAdminControler.selectedSystem.duration}" />
+
+				<h:outputText value="status :"></h:outputText>
+				<h:outputText value="#{sysAdminControler.selectedSystem.status}"></h:outputText>
+
+
+
+
+				<f:facet name="footer">
+					<p:commandButton value="Role authority" update=":authorityDialog"
+						actionListener="#{sysAdminControler.refreshRoleAuthority}"
+						oncomplete="authorityDialog_w.show();" />
+				</f:facet>
+			</p:panelGrid>
+		</h:form>
+	</p:dialog>
+
+	<p:dialog id="authorityDialog" header="Role Authoirty"
+		widgetVar="authorityDialog_w" resizable="false">
+		<h:form id="authorityForm">
+			<p:dataTable var="managedAuthority" editable="true"
+				value="#{sysAdminControler.managedAuthorityListModel}">
+
+				<f:facet name="header">
+					Role authority List
+				</f:facet>
+
+				<p:column headerText="Role name:">
+					<h:outputText value="#{managedAuthority.roleName}" />
+				</p:column>
+
+				<p:column headerText="Role authority level:">
+					<p:cellEditor>
+						<f:facet name="output">
+							<h:outputText value="#{managedAuthority.authorityLevel}" />
+						</f:facet>
+						<f:facet name="input">
+							<h:inputText value="#{managedAuthority.authorityLevel}">
+							</h:inputText>
+						</f:facet>
+					</p:cellEditor>
+				</p:column>
+				<p:column>
+					<p:rowEditor />
+				</p:column>
+
+
+			</p:dataTable>
+
+				<p:commandButton value="update"
+					actionListener="#{sysAdminControler.updateManagedAuthority}" oncomplete="authorityDialog_w.hide()"/>
+		</h:form>
+	</p:dialog>
+
+
+
+</h:body>
+</html>

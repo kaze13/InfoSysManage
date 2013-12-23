@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	#{userControler.conversationBegin()}
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{userControler.onRefresh(false)}
+				<p:layout>
+				<h:form id="form">
+
+					<p:layoutUnit position="north">
+
+						<p:toolbar>
+							<p:toolbarGroup align="left">
+								<p:commandButton value="#{dic.dic['NewUser']}" update=":newUserDlg"
+									oncomplete="newUserDialog.show()" icon="ui-icon-star"
+									title="#{dic.dic['CreateNewUser']}" />
+
+							</p:toolbarGroup>
+							<p:toolbarGroup align="right">
+								<p:commandButton value="#{dic.dic['Refresh']}"
+									actionListener="#{userControler.onRefresh(true)}" update="@all">
+
+								</p:commandButton>
+							</p:toolbarGroup>
+						</p:toolbar>
+					</p:layoutUnit>
+					<p:layoutUnit position="center">
+						<p:dataTable id="dataTable" var="user"
+							value="#{userControler.userVoListModel}" selectionMode="single"
+							selection="#{userControler.selectedUser}">
+							<p:ajax event="rowSelect" listener="#{userControler.loadUser}"
+								update=":userDetailForm:display" oncomplete="userDialog.show()"></p:ajax>
+							<f:facet name="header">
+                    User List
+                </f:facet>
+							<p:column sortBy="#{user.name}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['Username']}" />
+								</f:facet>
+								<h:outputText value="#{user.name}" />
+							</p:column>
+
+							<p:column sortBy="#{user.password}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['Password']}" />
+								</f:facet>
+								<h:outputText value="#{user.password}" />
+							</p:column>
+
+							<p:column sortBy="#{user.roleName}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['Role']}" />
+								</f:facet>
+								<h:outputText value="#{user.roleName}" />
+							</p:column>
+
+
+							<p:column sortBy="#{user.realName}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['RealName']}" />
+								</f:facet>
+								<h:outputText value="#{user.realName}" />
+							</p:column>
+							<p:column sortBy="#{user.identityNumber}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['IdentityNumber']}" />
+								</f:facet>
+								<h:outputText value="#{user.identityNumber}" />
+							</p:column>
+							<p:column sortBy="#{user.department}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['Department']}" />
+								</f:facet>
+								<h:outputText value="#{user.department}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:layoutUnit>
+
+				</h:form>
+			</p:layout>
+
+			<p:dialog header="#{dic.dic['UserDetial']}" widgetVar="userDialog"
+				resizable="false" id="userDlg" modal="true" appendToBody="true">
+				<h:form id="userDetailForm">
+					<p:panelGrid id="display" columns="2" cellpadding="4"
+						style="margin:0 auto;">
+						<h:outputText value="#{dic.dic['Username']} :*"></h:outputText>
+						<h:outputText value="#{userControler.selectedUser.name}" />
+
+						<h:outputText value="#{dic.dic['Password']} :*"></h:outputText>
+						<h:inputText value="#{userControler.selectedUser.password}" maxlength="50"
+							required="true" requiredMessage="Please Enter password!" />
+
+						<h:outputText value="#{dic.dic['Role']} :"></h:outputText>
+						<h:selectOneMenu value="#{userControler.selectedUser.roleName}"
+							required="true" requiredMessage="Please Enter role!">
+							<f:selectItems value="#{userControler.roleListModel}" var="role"
+								itemLabel="#{role.name}" itemValue="#{role.name}" />
+						</h:selectOneMenu>
+
+						<h:outputText value="#{dic.dic['ExpireTime']} :"></h:outputText>
+						<p:calendar value="#{userControler.expireDate}"
+							pattern="MM/dd/yyyy HH:mm" />
+
+						<h:outputText value="#{dic.dic['RealName']} :"></h:outputText>
+						<p:inputText value="#{userControler.selectedUser.realName}" maxlength="50" required="true" requiredMessage="real name is required"/>
+
+						<h:outputText value="#{dic.dic['IdentityNumber']} :"></h:outputText>
+						<p:inputText value="#{userControler.selectedUser.identityNumber}" maxlength="50" required="true" requiredMessage="identity number is required"/>
+
+						<h:outputText value="#{dic.dic['Description']} :"></h:outputText>
+						<p:inputText value="#{userControler.selectedUser.description}" maxlength="50" required="true" requiredMessage="description is required"/>
+
+						<h:outputText value="#{dic.dic['Department']} :"></h:outputText>
+						<p:inputText value="#{userControler.selectedUser.department}" maxlength="50" required="true" requiredMessage="department is required"/>
+
+						<h:outputText value="#{dic.dic['Authority']} :"></h:outputText>
+						<p:selectManyMenu value="#{userControler.selectedUser.authority}"
+							required="true" requiredMessage="Please select authority!"
+							style="width:98%">
+							<f:selectItems value="#{userControler.authorityList}"
+								var="authority" itemLabel="#{authority.authorityName}"
+								itemValue="#{authority.authorityName}" />
+						</p:selectManyMenu>
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Update']}" update=":form:dataTable, :growl"
+								oncomplete="userDialog.hide();"
+								actionListener="#{userControler.doUpdateUser}" />
+
+							<p:commandButton value="#{dic.dic['Delete']}"
+								actionListener="#{userControler.doDeleteUser}"
+								oncomplete="userDialog.hide();" update=":form:dataTable, :growl"
+								icon="ui-icon-trash" />
+
+
+						</f:facet>
+
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+
+
+			<p:dialog header="#{dic.dic['CreateNewUser']}" widgetVar="newUserDialog"
+				resizable="false" id="newUserDlg" modal="true" appendToBody="true">
+				<h:form id="newUserForm">
+					<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+						style="margin:0 auto;">
+						<h:outputText value="#{dic.dic['Username']} :"></h:outputText>
+						<p:inputText value="#{userControler.newUser.name}" required="true"
+							requiredMessage="Please Enter Username!" maxlength="50"/>
+
+						<h:outputText value="#{dic.dic['Password']} :"></h:outputText>
+						<p:inputText value="#{userControler.newUser.password}" maxlength="50"
+							required="true" requiredMessage="Please Enter password!" />
+
+						<h:outputText value="#{dic.dic['Role']} :"></h:outputText>
+						<h:selectOneMenu value="#{userControler.newUser.roleName}"
+							required="true" requiredMessage="Please Enter role!">
+							<f:selectItems value="#{userControler.roleListModel}" var="role"
+								itemLabel="#{role.name}" itemValue="#{role.name}" />
+						</h:selectOneMenu>
+
+						<h:outputText value="#{dic.dic['ExpireTime']} :"></h:outputText>
+						<p:calendar value="#{userControler.expireDate}"
+							pattern="MM/dd/yyyy HH:mm" />
+
+						<h:outputText value="#{dic.dic['RealName']} :"></h:outputText>
+						<p:inputText value="#{userControler.newUser.realName}" maxlength="50" required="true" requiredMessage="real name is required"/>
+
+						<h:outputText value="#{dic.dic['IdentityNumber']} :"></h:outputText>
+						<p:inputText value="#{userControler.newUser.identityNumber}" maxlength="50" required="true" requiredMessage="identity number is required"/>
+
+						<h:outputText value="#{dic.dic['Description']} :"></h:outputText>
+						<p:inputText value="#{userControler.newUser.description}" maxlength="50" required="true" requiredMessage="description is required"/>
+
+						<h:outputText value="#{dic.dic['Department']} :"></h:outputText>
+						<p:inputText value="#{userControler.newUser.department}" maxlength="50" required="true" requiredMessage="department is required" />
+
+						<h:outputText value="#{dic.dic['Authority']} :"></h:outputText>
+						<p:selectManyMenu value="#{userControler.newUser.authority}"
+							style="width:98%" required="true"
+							requiredMessage="Please select authority!">
+							<f:selectItems value="#{userControler.authorityList}"
+								var="authority" itemLabel="#{authority.authorityName}"
+								itemValue="#{authority.authorityName}" />
+						</p:selectManyMenu>
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								update=":form:dataTable, :growl @this"
+								oncomplete="newUserDialog.hide(); "
+								actionListener="#{userControler.doSaveUser}" />
+							<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+						</f:facet>
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

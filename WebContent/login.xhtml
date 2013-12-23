@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Login</title>
+	<link rel="stylesheet" type="text/css"
+		href="#{facesContext.externalContext.requestContextPath}/css/default.css"></link>
+	<link rel="stylesheet" type="text/css"
+		href="#{facesContext.externalContext.requestContextPath}/css/syntaxhighlighter.css"></link>
+	<link rel="stylesheet" type="text/css"
+		href="#{facesContext.externalContext.requestContextPath}/css/theme.css"></link>
+
+</h:head>
+<h:body>
+
+	<p:ajaxStatus onstart="statusDialog.show();"
+		oncomplete="statusDialog.hide();" />
+
+
+
+	<p:dialog modal="true" widgetVar="statusDialog" header="#{dic.dic['Processing']}"
+		appendToBody="true" draggable="false" closable="false">
+		<p:graphicImage value="/images/ajaxloadingbar.gif" />
+	</p:dialog>
+	<p:dialog visible="true" closable="false" modal="true" id="loginDlg"
+		header="#{dic.dic['UserAuthentication']}" draggable="false" resizable="false"
+		width="340">
+		<h:form id="loginForm">
+			<h:panelGrid columns="2" id="test">
+				<p:outputLabel for="username" value="#{dic.dic['Username']}" />
+				<p:inputText id="username" value="#{loginControler.username}"
+					maxlength="50" required="true" requiredMessage="username is required" />
+
+				<p:outputLabel for="password" value="#{dic.dic['Password']}" />
+				<p:password id="password" value="#{loginControler.password}"
+					maxlength="50" required="true" requiredMessage="password is required" />
+			</h:panelGrid>
+			<p:toolbar>
+				<p:toolbarGroup align="left">
+					<p:commandButton value="#{dic.dic['Login']}" action="#{loginControler.login}"
+						update=":growl" onclick="statusDialog.show()" />
+				</p:toolbarGroup>
+				<p:toolbarGroup align="right">
+					<p:commandButton value="#{dic.dic['NewIncomingEmployeeEntrance']}"
+						id="loginBtn" immediate="true"
+						actionListener="#{loginControler.initWizard}"
+						oncomplete="newComerWizard_w.show()"
+						update=":newComerWizard :growl" />
+					<p:blockUI block="test" trigger="loginBtn" />
+				</p:toolbarGroup>
+			</p:toolbar>
+		</h:form>
+	</p:dialog>
+
+
+
+
+	<p:dialog header="#{dic.dic['NewIncomingEmployeeWizard']}" id="newComerWizard"
+		widgetVar="newComerWizard_w">
+		<h:form>
+
+			<p:wizard widgetVar="wiz"
+				flowListener="#{loginControler.onFlowProcess}"
+				showStepStatus="false">
+
+				<p:tab id="checkIdentity" title="#{dic.dic['ConfirmIdentity']}">
+
+					<p:panel>
+						<h:panelGrid columns="2">
+							<h:outputText value="#{dic.dic['RealName']}: *" />
+							<p:inputText value="#{loginControler.newComerRealName}" maxlength="50"
+								required="true" requiredMessage="Real name is required" />
+							<h:outputText value="#{dic.dic['IdentityNumber']}: *" />
+							<p:inputText value="#{loginControler.newComerIdentityNumber}" maxlength="50"
+								required="true" requiredMessage="Identity number is required" />
+
+						</h:panelGrid>
+						<p:messages id="checkIdentityMsg" showDetail="true"
+							autoUpdate="true" />
+					</p:panel>
+				</p:tab>
+
+				<p:tab id="createAccount" title="#{dic.dic['CreateAccount']}">
+					<p:messages id="accountConfirmMsg" showDetail="true"
+						autoUpdate="true" />
+					<h:panelGrid columns="2" id="matchGrid">
+						<h:outputLabel value="#{dic.dic['Username']}: *" />
+						<p:inputText value="#{loginControler.newUserName}" required="true" maxlength="50"
+							requiredMessage="User name is required" />
+						<h:outputLabel for="pwd1" value="#{dic.dic['NewPassword']}: *" />
+						<p:password id="pwd1" value="#{loginControler.newPassword}" maxlength="50"
+							feedback="true" match="pwd2" label="Password 1" required="true"
+							requiredMessage="New password is required" />
+
+						<h:outputLabel for="pwd2" value="#{dic.dic['Confirm']} : *" />
+						<p:password id="pwd2" value="#{loginControler.newPassword}" maxlength="50"
+							feedback="true" label="Password 2" required="true"
+							requiredMessage="Password confirm is required" />
+					</h:panelGrid>
+					<p:commandButton value="#{dic.dic['Confirm']}"
+						actionListener="#{loginControler.confirmNewAccount}"
+						update="@form,:growl" oncomplete="newComerWizard_w.hide()"></p:commandButton>
+				</p:tab>
+
+			</p:wizard>
+		</h:form>
+	</p:dialog>
+
+
+	<p:growl id="growl" showDetail="true" />
+
+
+
+</h:body>
+</html>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition>
+		<h:form>
+			<p:lightBox style="text-align:center;margin-top:20px;">
+				<h:outputLink value="#{request.contextPath}/images/nature1.jpg"
+					title="Nature 1" style="margin-bottom:5px;">
+					<h:graphicImage value="/images/nature1_small.jpg" />
+				</h:outputLink>
+
+				<h:outputLink value="#{request.contextPath}/images/nature2.jpg"
+					title="Nature 2" style="margin-bottom:2px;">
+					<h:graphicImage value="/images/nature2_small.jpg" />
+				</h:outputLink>
+
+				<h:outputLink value="#{request.contextPath}/images/nature3.jpg"
+					title="Nature 3" style="margin-bottom:2px;">
+					<h:graphicImage value="/images/nature3_small.jpg" />
+				</h:outputLink>
+
+				<h:outputLink value="#{request.contextPath}/images/nature4.jpg"
+					title="Nature 4" style="margin-bottom:2px;">
+					<h:graphicImage value="/images/nature4_small.jpg" />
+				</h:outputLink>
+			</p:lightBox>
+
+			<p:commandButton id="basic" value="Show Dialog"
+				onclick="PF('dlg').show();" type="button" style="margin-top:10px" />
+		</h:form>
+	</ui:composition>
+</h:body>
+</html>

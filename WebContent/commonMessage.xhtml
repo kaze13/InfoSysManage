@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	#{messageControler.conversationBegin()}
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+		#{messageControler.onRefresh()}
+		<link rel="stylesheet" type="text/css" href="./css/message.css"></link>
+			<script type="text/javascript" src="./js/func.js"></script>
+
+
+			<p:layout>
+
+				<p:layoutUnit position="north" styleClass="nestedUnit">
+
+					<h:form id="toolbarForm">
+
+						<p:toolbar>
+							<p:toolbarGroup align="left">
+								<p:commandButton value="#{dic.dic['Compose']}" update=":newMessageDlg"
+									oncomplete="newMessageDialog.show()" icon="ui-icon-star"
+									title="#{dic.dic['Compose']}" />
+								<p:menuButton value="#{dic.dic['Filter']}">
+									<p:menuitem value="#{dic.dic['All']}" update=":form :detialForm"
+										actionListener="#{messageControler.showAll}" />
+									<p:menuitem value="#{dic.dic['Read']}" update=":form :detialForm"
+										actionListener="#{messageControler.showRead}" />
+									<p:menuitem value="#{dic.dic['NotRead']}" update=":form :detialForm"
+										actionListener="#{messageControler.showNotRead}" />
+
+								</p:menuButton>
+								<p:menuButton value="#{dic.dic['View']}">
+									<p:menuitem update=":form :detialForm"
+										value="#{dic.dic['ShowSentApplications']}"
+										actionListener="#{messageControler.showSentMessage}" />
+									<p:menuitem update=":form :detialForm"
+										value="#{dic.dic['ShowRecievedApplications']}"
+										actionListener="#{messageControler.showRecievedMessage}" />
+								</p:menuButton>
+								<p:commandButton value="#{dic.dic['MarkAllAsRead']}"
+									actionListener="#{messageControler.markAllAsRead}"
+									update=":form"></p:commandButton>
+								<p:commandButton value="#{dic.dic['Reply']}" id="replyBtn"
+									oncomplete="newMessageDialog.show();" update=":newMessageDlg"
+									actionListener="#{messageControler.doReplyMessage}"
+									rendered="#{messageControler.selectedMessage != null and messageControler.recievedMessageView}" />
+								<p:commandButton id="deleteMessageBtn" value="#{dic.dic['Delete']}"
+									actionListener="#{messageControler.doDeleteMessage}"
+									update=":form,:detialForm" icon="ui-icon-trash"
+									rendered="#{messageControler.selectedMessage != null}" />
+
+
+							</p:toolbarGroup>
+
+							<p:toolbarGroup align="right">
+								<p:menuButton value="#{dic.dic['Layout']}">
+									<p:menuitem value="#{dic.dic['Horizontal']}" update="@all"
+										actionListener="#{messageControler.changeLayoutHorizontal}" />
+									<p:menuitem value="#{dic.dic['Vertical']}" update="@all"
+										actionListener="#{messageControler.changeLayoutVertical}" />
+								</p:menuButton>
+								<p:commandButton value="#{dic.dic['Refresh']}"
+									actionListener="#{messageControler.onRefresh()}" update="@all" />
+							</p:toolbarGroup>
+						</p:toolbar>
+
+					</h:form>
+				</p:layoutUnit>
+
+
+				<p:layoutUnit position="center" resizable="true" binding="#{messageControler.dataUnit}"
+					styleClass="nestedUnit">
+					<h:form id="form">
+
+						<p:commandButton id="hiddenButton"
+							actionListener="#{messageControler.readItem}"
+							style="display:none"></p:commandButton>
+						<p:dataTable id="dataTable" var="message" sortBy="#{message.time}"
+							sortOrder="descending"
+							value="#{messageControler.messageListModel}"
+							selectionMode="single" styleClass="hide-column-names"
+							selection="#{messageControler.selectedMessage}">
+							<p:ajax  event="rowSelect"
+								update=":detialForm,:form:dataTable,:toolbarForm"
+								listener="#{messageControler.readItem()}" />
+							<p:ajax event="rowUnselect" update=":toolbarForm" />
+
+							<p:column style="width:10%;" id="column"
+								sortBy="#{message.senderName}"
+								styleClass="#{message.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{messageControler.abstraction(message.senderName,20)}" />
+
+							</p:column>
+
+							<p:column style="width:15%;" sortBy="#{message.title}"
+								styleClass="#{message.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{messageControler.abstraction(message.title,30)}" />
+							</p:column>
+
+							<p:column style="width:50%;" sortBy="#{message.body}"
+								styleClass="#{message.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{messageControler.abstraction(message.body,150)}" />
+							</p:column>
+							<p:column style="width:10%;" sortBy="#{message.time}"
+								styleClass="#{message.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{messageControler.convertTime(message.time)}" />
+							</p:column>
+
+							<p:column style="width:10%;" sortBy="#{message.statue}"
+								styleClass="#{message.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText value="#{message.statue}" />
+							</p:column>
+
+
+
+						</p:dataTable>
+					</h:form>
+
+				</p:layoutUnit>
+
+				<p:layoutUnit position="south" styleClass="nestedUnit" size="65%" binding="#{messageControler.detialUnit}"
+					resizable="true">
+
+					<h:form id="detialForm">
+						<p:outputPanel
+							rendered="#{messageControler.selectedMessage != null}">
+							<h:panelGrid columns="2" cellpadding="4"
+								style="font-weight:bold;font-size:20px">
+								<h:outputText value="#{messageControler.selectedMessage.title}" />
+							</h:panelGrid>
+							<p:separator />
+							<h:panelGrid columns="2" cellpadding="4">
+								<h:outputLabel for="detialSender" value="#{dic.dic['Sender']} :" />
+								<h:outputText id="senderName"
+									value="#{messageControler.selectedMessage.senderName}" />
+
+
+								<h:outputLabel for="detialTime" value="#{dic.dic['Time']} :" />
+								<h:outputText
+									value="#{messageControler.convertTime(messageControler.selectedMessage.time)}" />
+
+								<h:outputLabel for="detialAttach" value="#{dic.dic['AttachFile']} :" />
+								<h:outputText value="#{dic.dic['NoAttachFile']}"
+									rendered="#{messageControler.selectedMessage.fileId=='' or messageControler.selectedMessage.fileId=='none'}" />
+
+								<p:commandLink id="downloadLink" value="#{dic.dic['ClickToDownload']}" style="color: #0088cc"
+									rendered="#{messageControler.selectedMessage.fileId!='' and messageControler.selectedMessage.fileId!='none'}"
+									ajax="false"
+									actionListener="#{messageControler.processDownload}">
+									<p:fileDownload value="#{messageControler.downloadFile}" />
+								</p:commandLink>
+
+							</h:panelGrid>
+							<p:separator />
+							<h:outputText value="#{messageControler.selectedMessage.body}"
+								escape="false" style="white-space: pre;font-size:15px" />
+
+						</p:outputPanel>
+
+
+					</h:form>
+
+				</p:layoutUnit>
+
+			</p:layout>
+
+
+
+
+			<p:dialog header="#{dic.dic['CreateNewMessage']}" widgetVar="newMessageDialog"
+				resizable="false" id="newMessageDlg" width="530" modal="true"
+				appendToBody="true">
+				<h:form id="newMessageForm" enctype="multipart/form-data">
+					<h:panelGrid id="displayNewMessage" columns="2" cellpadding="4">
+						<h:outputLabel for="newLeader" value="#{dic.dic['To']} : "></h:outputLabel>
+
+						<p:autoComplete id="newLeader" maxlength="50"
+							value="#{messageControler.newMessage.recieverName}"
+							completeMethod="#{globalBean.completeUser}" required="true"
+							requiredMessage="Please enter target user name." global="false">
+							<f:validator binding="#{userExistValidator}">
+							</f:validator>
+						</p:autoComplete>
+						<h:outputLabel for="title" value="#{dic.dic['Title']} : "></h:outputLabel>
+						<p:inputText id="title" maxlength="50"
+							value="#{messageControler.newMessage.title}" required="true"
+							requiredMessage="Please Enter title!" />
+
+						<h:outputLabel for="attach" value="#{dic.dic['AttachFile']} : "></h:outputLabel>
+						<p:fileUpload id="attach" value="#{messageControler.file}"
+							mode="simple" />
+					</h:panelGrid>
+
+
+					<p:separator />
+
+					<p:inputTextarea style="width:98%;height:200px" autoResize="false"
+						value="#{messageControler.newMessage.body}" maxlength="250" required="true" requiredMessage="body is required"/>
+
+					<p:separator />
+					<p:commandButton id="sendBtn" value="#{dic.dic['Send']}" update=":form:dataTable, :growl"
+						ajax="false" oncomplete="newMessageDialog.hide(); "
+						actionListener="#{messageControler.doSendMessage}"
+						onclick="statusDialog.show()" />
+					<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+				</h:form>
+			</p:dialog>
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+
+</h:body>
+</html>

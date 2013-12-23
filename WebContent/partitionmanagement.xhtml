@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{partitionManagementControler.onRefresh()}
+			<h:form>
+				<p:toolbar>
+					<p:toolbarGroup align="right">
+						<p:commandButton value="#{dic.dic['Refresh']}"
+							actionListener="#{partitionManagementControler.onRefresh()}"
+							update="@all" />
+					</p:toolbarGroup>
+				</p:toolbar>
+				<p:dataTable
+					value="#{partitionManagementControler.missionPartitionDataModel}"
+					var="partition"
+					selection="#{partitionManagementControler.selectedMissionPartition}"
+					selectionMode="single">
+
+					<p:column headerText="#{dic.dic['Title']}">
+						<h:outputText value="#{partition.title}" />
+					</p:column>
+
+					<p:column headerText="#{dic.dic['LeaderName']}">
+						<h:outputText value="#{partition.leaderName}" />
+					</p:column>
+
+					<p:column headerText="#{dic.dic['Description']}">
+						<h:outputText value="#{partition.description}" />
+					</p:column>
+
+					<p:column headerText="#{dic.dic['Progress']}">
+						<h:outputText
+							value="#{partition.progress}"
+							rendered="#{partition.progress >= 0 and partition.progress lt 100}" />
+						<h:outputText value="#{dic.dic['NotDelivered']}"
+							rendered="#{partition.progress == -1}" />
+						<h:outputText value="#{dic.dic['Waiting']}"
+							rendered="#{partition.progress == -2}" />
+
+						<h:outputText value="#{dic.dic['Rejected']}"
+							rendered="#{partition.progress == -3}" />
+						<h:outputText value="#{dic.dic['Submitted']}"
+							rendered="#{partition.progress == -4}" />
+						<h:outputText value="#{dic.dic['Completed']}"
+							rendered="#{partition.progress == 100}" />
+						<h:outputText value="#{dic.dic['SubmissionRejected']}"
+							rendered="#{partition.progress == -6}" />
+					</p:column>
+
+					<p:column>
+						<p:commandLink value="#{dic.dic['EnterPartition']}" style="color: #0088cc" rendered="#{(partition.progress >= 0 or partition.progress == -6) and partition.progress != 100}"
+							action="#{partitionManagementControler.redirect(partition)}" />
+					</p:column>
+				</p:dataTable>
+			</h:form>
+
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

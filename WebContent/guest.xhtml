@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{guestControler.onRefresh()}
+<script type="text/javascript">
+	function resetWizard() {
+		wizard_w.loadStep(wizard_w.cfg.steps[0], true);
+	}
+</script>
+			<h:form>
+				<p:toolbar>
+					<p:toolbarGroup align="right">
+						<p:commandButton value="#{dic.dic['Refresh']}"
+							actionListener="#{guestControler.onRefresh()}" update="@all" />
+					</p:toolbarGroup>
+				</p:toolbar>
+
+
+				<p:panel title="#{dic.dic['ApplyForCreateGuestAccount']}" style="width:70%">
+					<p:wizard flowListener="#{guestControler.onFlowProcess}" widgetVar="wizard_w">
+
+						<p:tab id="guestInformation" title="#{dic.dic['GuestInformation']}">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{dic.dic['GuestName']} : "></h:outputText>
+								<p:inputText value="#{guestControler.guestName}" required="true" maxlength="50"
+									requiredMessage="Guest name is required" style="width:150px"></p:inputText>
+
+								<h:outputText value="#{dic.dic['GuestDescription']} : "></h:outputText>
+								<p:inputTextarea value="#{guestControler.guestDescription}"  maxlength="250"
+									required="true" requiredMessage="Guest description is required"
+									style="width:150px" />
+
+								<h:outputText value="#{dic.dic['BusinessDescription']} : "></h:outputText>
+								<p:inputTextarea value="#{guestControler.businessDescription}"
+									style="width:150px" required="true"  maxlength="250"
+									requiredMessage="Business description is required" />
+
+								<h:outputText value="#{dic.dic['ExpireDate']} : "></h:outputText>
+								<p:calendar value="#{guestControler.expireDate}" required="true"
+									requiredMessage="Expire date is required"
+									pattern="MM/dd/yyyy HH:mm" style="width:150px" />
+							</h:panelGrid>
+							<h:outputText value="#{dic.dic['SkipToLast']} : " />
+							<h:selectBooleanCheckbox value="#{guestControler.skip}" />
+						</p:tab>
+
+						<p:tab id="guestDependentSystem" title="#{dic.dic['GuestAuthorisedSystems']}">
+
+							<p:pickList converter="systemConverter"
+								value="#{guestControler.dependentSystem}" var="system"
+								itemLabel="#{system.name}" itemValue="#{system}" />
+							<h:outputText value="#{dic.dic['SkipToLast']} : " />
+							<h:selectBooleanCheckbox value="#{guestControler.skip}" />
+
+						</p:tab>
+
+
+						<p:tab id="guestDependentFunctions"
+							title="#{dic.dic['GuestAuthorisedFunctions']}">
+							<p:fieldset id="source" legend="Source">
+								<p:dataTable id="sourceFunction" var="function"
+									value="#{guestControler.sourceFunctionModel}">
+									<p:column style="width:20px">
+										<h:outputText id="dragIcon"
+											styleClass="ui-icon ui-icon-arrow-4" />
+										<p:draggable for="dragIcon" revert="true" />
+									</p:column>
+
+									<p:column headerText="#{dic.dic['System']}">
+										<h:outputText value="#{function.systemName}" />
+									</p:column>
+
+									<p:column headerText="#{dic.dic['Function']}">
+										<h:outputText value="#{function.functionName}" />
+									</p:column>
+								</p:dataTable>
+							</p:fieldset>
+							<p:fieldset id="target" legend="Target" style="margin-top:20px">
+								<p:outputPanel id="dropArea">
+									<h:outputText value="!!!Drop here!!!"
+										rendered="#{empty guestControler.targetFunctionModel}"
+										style="font-size:24px;" />
+									<p:dataTable id="targetTable"
+										value="#{guestControler.targetFunctionModel}" var="function">
+										<p:column style="width:20px">
+											<h:outputText id="dragIcon2"
+												styleClass="ui-icon ui-icon-arrow-4" />
+											<p:draggable for="dragIcon2" revert="true" />
+										</p:column>
+										<p:column>
+									#{function.systemName} - #{function.functionName}
+								</p:column>
+
+										<p:column style="width:20px">
+											<p:commandButton value="#{dic.dic['Delete']}" immediate="true"
+												action="#{guestControler.deleteTargetFunction(function)}"
+												update="targetTable"></p:commandButton>
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+
+								<p:droppable for="target" tolerance="touch"
+									activeStyleClass="ui-state-highlight"
+									datasource="sourceFunction">
+									<p:ajax listener="#{guestControler.onFunctionDroped}"
+										update="dropArea sourceFunction" />
+								</p:droppable>
+							</p:fieldset>
+							<h:outputText value="#{dic.dic['SkipToLast']} : " />
+							<h:selectBooleanCheckbox value="#{guestControler.skip}" />
+						</p:tab>
+
+						<p:tab id="guestConfirm" title="#{dic.dic['Confirm']}">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{dic.dic['GuestName']} : "></h:outputText>
+								<h:outputText value="#{guestControler.guestName}"></h:outputText>
+
+								<h:outputText value="#{dic.dic['GuestDescription']} : "></h:outputText>
+								<h:outputText value="#{guestControler.guestDescription}" />
+
+								<h:outputText value="#{dic.dic['BusinessDescription']} : "></h:outputText>
+								<h:outputText value="#{guestControler.businessDescription}" />
+
+								<h:outputText value="#{dic.dic['ExpireDate']} : "></h:outputText>
+								<h:outputText value="#{guestControler.expireDate}" />
+							</h:panelGrid>
+
+							<p:separator></p:separator>
+							<h:outputText value="#{dic.dic['DependentSystems']} :"></h:outputText>
+							<p:dataList value="#{guestControler.dependentSystem.getTarget()}"
+								var="system">
+								#{system.name}
+							</p:dataList>
+
+							<p:separator></p:separator>
+							<h:outputText value="#{dic.dic['DependentFunctions']}:"></h:outputText>
+							<p:dataList value="#{guestControler.targetFunctionModel}"
+								var="function">
+								#{function.systemName}, #{function.functionName}
+							</p:dataList>
+							<p:commandButton value="#{dic.dic['Submit']}" oncomplete="resetWizard()"
+								actionListener="#{guestControler.applyForCreateGuest}"
+								update=":messages"></p:commandButton>
+						</p:tab>
+
+					</p:wizard>
+				</p:panel>
+			</h:form>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

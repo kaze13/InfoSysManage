@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	#{taskControler.conversationBegin()}
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+
+			<link rel="stylesheet" type="text/css" href="css/message.css"></link>
+			<script type="text/javascript" src="js/func.js"></script>
+			<p:layout>
+				<p:layoutUnit position="center" styleClass="nestedUnit"
+					resizable="true">
+					<p:tabView id="tabView">
+
+						<p:tab title="Calendar">
+							<h:form id="calendarForm">
+
+								<p:growl id="messages" showDetail="true" />
+
+								<p:schedule id="calendar" value="#{taskControler.eventModel}"
+									widgetVar="myschedule">
+
+
+									<p:ajax event="eventSelect"
+										listener="#{taskControler.onEventSelect}"
+										update="eventDetails,:detialForm" />
+									<p:ajax event="eventMove"
+										listener="#{taskControler.onEventMove}" update="messages" />
+									<p:ajax event="eventResize"
+										listener="#{taskControler.onEventResize}" update="messages" />
+
+								</p:schedule>
+
+								<p:dialog widgetVar="eventDialog" header="Event Details"
+									showEffect="clip" hideEffect="clip">
+									<h:panelGrid id="eventDetails" columns="2">
+										<h:outputLabel for="title" value="Title:" />
+										<p:inputText id="title" value="#{taskControler.event.title}"
+											required="true" />
+
+										<h:outputLabel for="from" value="From:" />
+										<p:inputMask id="from"
+											value="#{taskControler.event.startDate}" mask="99/99/9999">
+											<f:convertDateTime pattern="dd/MM/yyyy" />
+										</p:inputMask>
+
+										<h:outputLabel for="to" value="To:" />
+										<p:inputMask id="to" value="#{taskControler.event.endDate}"
+											mask="99/99/9999">
+											<f:convertDateTime pattern="dd/MM/yyyy" />
+										</p:inputMask>
+
+										<h:outputLabel for="allDay" value="All Day:" />
+										<h:selectBooleanCheckbox id="allDay"
+											value="#{taskControler.event.allDay}" />
+
+										<p:commandButton type="reset" value="Reset" />
+										<p:commandButton value="Save"
+											actionListener="#{taskControler.addEvent}"
+											oncomplete="myschedule.update();eventDialog.hide();" />
+									</h:panelGrid>
+								</p:dialog>
+
+							</h:form>
+						</p:tab>
+
+						<p:tab title="Task list">
+
+							<h:form id="form">
+
+								<p:toolbar id="toolbar">
+									<p:toolbarGroup align="left">
+
+										<p:menuButton value="New">
+											<p:menuitem value="TODO task" update=":newTaskDlg"
+												oncomplete="newTaskDlg_w.show()" />
+											<p:menuitem value="New Mission"
+												oncomplete="newMissionDialog.show()"
+												title="Creates new mission" />
+											<p:menuitem value="Assignment" />
+
+										</p:menuButton>
+										<p:commandButton value="New mission partition"
+											rendered="#{taskControler.selectedNode.data.type.ordinal() == 0 and taskControler.judgeAuthority()}"
+											oncomplete="newMissionPartitionDlg_w.show()"
+											update=":newMissionPartitionDlg"></p:commandButton>
+										<p:commandButton value="New task unit"
+											rendered="#{taskControler.selectedNode.data.type.ordinal() == 1 and taskControler.judgeAuthority()}"></p:commandButton>
+
+
+										<p:commandButton value="Update partition"
+											rendered="#{taskControler.selectedNode.data.type.ordinal() == 1 and !taskControler.judgeAuthority()}"
+											update=":missionPartitionDlg"
+											oncomplete="missionPartitionDlg_w.show();" />
+
+										<p:commandButton value="Deliver partition"
+											rendered="#{taskControler.selectedNode.data.type.ordinal() == 1 and !taskControler.judgeAuthority() and taskControler.selectedNode.data.statue.ordinal() == 6}"
+											update=":tabView:form:dataTable,:detialForm, :growl"
+											actionListener="#{taskControler.doDeliverMissionPartition}" />
+									</p:toolbarGroup>
+
+								</p:toolbar>
+								<p:treeTable id="dataTable" var="task"
+									value="#{taskControler.root}" sortBy="#{task.startTime}"
+									sortOrder="descending" selectionMode="single"
+									styleClass="hide-column-names"
+									selection="#{taskControler.selectedNode}">
+									<p:ajax event="select"
+										update=":detialForm,:tabView:form:toolbar" />
+									<p:column sortBy="#{task.title}">
+										<h:outputText
+											value="#{taskControler.abstraction(task.title,30)}" />
+
+
+									</p:column>
+
+									<p:column sortBy="#{task.type}">
+
+										<h:outputText value="#{task.type}" />
+									</p:column>
+
+									<p:column
+										sortBy="#{taskControler.abstraction(task.description,150)}">
+
+										<h:outputText value="#{task.description}" />
+
+									</p:column>
+
+									<p:column sortBy="#{task.startTime}">
+
+										<h:outputText
+											value="#{taskControler.convertTime(task.startTime)}" />
+									</p:column>
+									<p:column sortBy="#{task.statue}">
+
+										<h:outputText value="#{task.statue}" />
+
+									</p:column>
+								</p:treeTable>
+
+
+							</h:form>
+
+
+
+						</p:tab>
+
+
+
+					</p:tabView>
+				</p:layoutUnit>
+
+				<p:layoutUnit position="south" styleClass="nestedUnit" size="30%"
+					resizable="true">
+					<h:form id="detialForm">
+						<p:toolbar id="toolbar"
+							rendered="#{taskControler.selectedNode != null}">
+							<p:toolbarGroup align="left"
+								rendered="#{taskControler.selectedNode.data.statue.ordinal()==2}">
+								<p:commandButton value="Accept"
+									action="#{taskControler.acceptTask}"
+									update=":tabView:form,:detialForm" />
+								<p:commandButton value="Reject"
+									oncomplete="rejectTaskDlg_w.show()" />
+							</p:toolbarGroup>
+							<p:toolbarGroup align="left"
+								rendered="#{taskControler.selectedNode.data.statue.ordinal()==0 || taskControler.selectedNode.data.statue.ordinal()==5}">
+
+								<p:commandLink value="Do task" style="font-size : 20px"
+									action="#{taskControler.redirect}" />
+
+							</p:toolbarGroup>
+						</p:toolbar>
+						<p:outputPanel rendered="#{taskControler.selectedNode != null}">
+							<h:panelGrid columns="2" cellpadding="4"
+								style="font-weight:bold;font-size:20px">
+								<h:outputText value="#{taskControler.selectedNode.data.title}" />
+							</h:panelGrid>
+							<p:separator />
+							<h:panelGrid columns="2" cellpadding="4">
+								<h:outputLabel for="taskType" value="Type :" />
+								<h:outputText id="taskType"
+									value="#{taskControler.selectedNode.data.type}" />
+
+
+								<h:outputLabel for="detialTime" value="Time :" />
+								<h:outputText id="detialTime"
+									value="#{taskControler.convertTime(taskControler.selectedNode.data.startTime)}" />
+
+								<h:outputLabel for="taskStatue" value="Statue :" />
+								<h:outputText id="taskStatue"
+									value="#{taskControler.selectedNode.data.statue}" />
+
+
+							</h:panelGrid>
+							<p:separator />
+							<h:outputText
+								value="#{taskControler.selectedNode.data.description}"
+								escape="false" />
+							<p:outputPanel>
+								<h:outputText
+									value="#{taskControler.selectedNode.data.taskObject}"
+									escape="false" />
+							</p:outputPanel>
+						</p:outputPanel>
+
+
+					</h:form>
+				</p:layoutUnit>
+
+			</p:layout>
+
+
+			<p:dialog header="Reject task" widgetVar="rejectTaskDlg_w"
+				resizable="false" id="rejectApplicationDlg">
+				<h:form id="rejecTaskForm">
+
+					<h:panelGrid columns="1" cellpadding="5">
+						<h:outputText value="comment: "></h:outputText>
+
+						<p:editor value="#{taskControler.comment}" />
+						<p:separator />
+
+						<p:commandButton value="submit" update=":tabView:form,:detialForm"
+							oncomplete="rejectTaskDlg_w.hide()"
+							actionListener="#{taskControler.rejectTask}"></p:commandButton>
+					</h:panelGrid>
+
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="New todo task" widgetVar="newTaskDlg_w"
+				id="newTaskDlg">
+				<h:form>
+					<h:panelGrid columns="2" cellpadding="5">
+						<h:outputLabel for="todoTitle" value="Title :"></h:outputLabel>
+						<p:inputText id="todoTitle" value="#{taskControler.newTask.title}"></p:inputText>
+						<h:outputLabel for="todoStartTime" value="Start time :"></h:outputLabel>
+						<p:calendar id="todoStartTime"
+							value="#{taskControler.newStartTime}" pattern="MM/dd/yyyy HH:mm" />
+						<h:outputLabel for="todoEndTime" value="End time :"></h:outputLabel>
+						<p:calendar id="todoEndTime" value="#{taskControler.newEndTime}"
+							pattern="MM/dd/yyyy HH:mm" />
+					</h:panelGrid>
+					<p:separator></p:separator>
+					<h:outputLabel value="Description :"></h:outputLabel>
+					<p:editor value="#{taskControler.newTask.description}"></p:editor>
+					<p:separator></p:separator>
+					<p:commandButton value="Submit"
+						update=":tabView:form:dataTable,:tabView:calendarForm, :growl"
+						oncomplete="newTaskDlg_w.hide(); "
+						actionListener="#{taskControler.doSaveTODOTask}" />
+					<p:commandButton type="reset" value="Reset"></p:commandButton>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="New assignment" widgetVar="newAssignmentDlg_w"
+				id="newAssignmentDlg">
+				<h:form>
+					<h:panelGrid columns="2" cellpadding="5">
+						<h:outputLabel for="assignTitle" value="Title :"></h:outputLabel>
+						<p:inputText id="assignTitle"
+							value="#{taskControler.newTask.title}"></p:inputText>
+						<h:outputLabel for="assignDealer" value="Dealer :"></h:outputLabel>
+						<p:inputText id="assignDealer"
+							value="#{taskControler.newTask.ownerName}"></p:inputText>
+						<h:outputLabel for="assignStartTime" value="Start time :"></h:outputLabel>
+						<p:calendar id="assignStartTime"
+							value="#{taskControler.newStartTime}" pattern="MM/dd/yyyy HH:mm" />
+						<h:outputLabel for="assignEndTime" value="End time :"></h:outputLabel>
+						<p:calendar id="assignEndTime" value="#{taskControler.newEndTime}"
+							pattern="MM/dd/yyyy HH:mm" />
+					</h:panelGrid>
+					<p:separator></p:separator>
+					<h:outputLabel value="Description :"></h:outputLabel>
+					<p:editor value="#{taskControler.newTask.description}"></p:editor>
+					<p:separator></p:separator>
+					<p:commandButton value="Submit"
+						update=":tabView:form:dataTable,:tabView:calendarForm, :growl"
+						oncomplete="newTaskDlg_w.hide(); "
+						actionListener="#{taskControler.doSaveTODOTask}" />
+					<p:commandButton type="reset" value="Reset"></p:commandButton>
+				</h:form>
+			</p:dialog>
+
+
+			<p:dialog header="Create New MissionPartition"
+				widgetVar="newMissionPartitionDlg_w" resizable="false"
+				id="newMissionPartitionDlg">
+				<h:form id="newMissionPartitionForm">
+					<h:panelGrid id="displayNewMissionPartition" columns="2"
+						cellpadding="4">
+						<h:outputText value="MissionPartition title :"></h:outputText>
+						<h:inputText value="#{taskControler.newMissionPartition.title}"
+							required="true" requiredMessage="Please Enter title!" />
+
+						<h:outputText value="Leader name :"></h:outputText>
+						<h:inputText
+							value="#{taskControler.newMissionPartition.leaderName}"
+							required="true" requiredMessage="Please Enter leader name!" />
+					</h:panelGrid>
+
+					<p:separator></p:separator>
+					<h:outputLabel value="Description :"></h:outputLabel>
+					<p:editor value="#{taskControler.newMissionPartition.description}"></p:editor>
+					<p:separator></p:separator>
+
+					<p:commandButton value="Submit"
+						update=":tabView:form:dataTable,:growl"
+						oncomplete="newMissionPartitionDlg_w.hide(); "
+						actionListener="#{taskControler.doSaveMissionPartition}" />
+					<p:commandButton type="reset" value="Reset"></p:commandButton>
+
+
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="MissionPartition Detail"
+				widgetVar="missionPartitionDlg_w" resizable="false"
+				id="missionPartitionDlg">
+				<h:form id="missionPartitionDetailForm">
+					<h:panelGrid id="display" columns="2" cellpadding="4">
+						<h:outputText value="MissionPartition title :"></h:outputText>
+						<h:outputText
+							value="#{taskControler.selectedNode.data.taskObject.title}" />
+
+						<h:outputText value="Leader name :"></h:outputText>
+
+						<h:inputText
+							value="#{taskControler.selectedNode.data.taskObject.leaderName}"
+							required="true" requiredMessage="Please Enter leader name!"
+							rendered="#{taskControler.selectedNode.data.taskObject.progress == -1}" />
+					</h:panelGrid>
+					<p:separator></p:separator>
+					<h:outputLabel value="Description :"></h:outputLabel>
+					<p:editor
+						value="#{taskControler.selectedNode.data.taskObject.description}"></p:editor>
+					<p:separator></p:separator>
+
+
+
+					<p:commandButton value="Submit"
+						update=":tabView:form:dataTable,:detialForm,:growl"
+						oncomplete="missionPartitionDlg_w.hide(); "
+						actionListener="#{taskControler.doUpdateMissionPartition}" />
+					<p:commandButton type="reset" value="Reset"></p:commandButton>
+
+
+				</h:form>
+			</p:dialog>
+
+
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

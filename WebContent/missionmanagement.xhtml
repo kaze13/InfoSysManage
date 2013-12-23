@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{missionManagementControler.onRefresh()}
+
+			<h:form id="form">
+				<p:dataTable value="#{missionManagementControler.missionDataModel}"
+					var="mission"
+					selection="#{missionManagementControler.selectedMission}"
+					selectionMode="single">
+
+					<p:column headerText="#{dic.dic['Title']}">
+						<h:outputText value="#{mission.title}" />
+					</p:column>
+
+					<p:column headerText="#{dic.dic['LeaderName']}">
+						<h:outputText value="#{mission.leaderName}" />
+					</p:column>
+
+					<p:column headerText="#{dic.dic['CreatorName']}">
+						<h:outputText value="#{mission.creatorName}" />
+					</p:column>
+
+					<p:column headerText="#{dic.dic['Description']}">
+						<h:outputText value="#{mission.description}" />
+					</p:column>
+
+					<p:column headerText="#{dic.dic['Progress']}">
+						<h:outputText value="#{mission.progress}"
+							rendered="#{mission.progress >= 0 and mission.progress lt 100}" />
+						<h:outputText value="#{dic.dic['NotDelivered']}"
+							rendered="#{mission.progress == -1}" />
+						<h:outputText value="#{dic.dic['Waiting']}"
+							rendered="#{mission.progress == -2}" />
+
+						<h:outputText value="#{dic.dic['Rejected']}"
+							rendered="#{mission.progress == -3}" />
+						<h:outputText value="#{dic.dic['Submitted']}"
+							rendered="#{mission.progress == -4}" />
+						<h:outputText value="#{dic.dic['Completed']}"
+							rendered="#{mission.progress == 100}" />
+						<h:outputText value="#{dic.dic['SubmissionRejected']}"
+							rendered="#{mission.progress == -6}" />
+					</p:column>
+
+					<p:column>
+						<p:commandLink value="#{dic.dic['EnterMission']}"
+							style="color: #0088cc"
+							rendered="#{(mission.progress >= 0 or mission.progress == -6) and mission.progress != 100}"
+							action="#{missionManagementControler.redirect(mission)}" />
+					</p:column>
+				</p:dataTable>
+			</h:form>
+
+
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

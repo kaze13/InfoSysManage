@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	#{messageControler.conversationBegin()}
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<h:form id="form">
+		<a href="index.jsf">index</a>
+		<p:dataTable id="dataTable" var="message"
+			value="#{messageControler.messageListModel}" selectionMode="multiple"
+			selection="#{messageControler.selectedMessages}">
+
+			<p:column sortBy="#{message.senderName}">
+				<f:facet name="header">
+					<h:outputText value="senderName" />
+				</f:facet>
+				<p:commandLink value="#{message.senderName}"
+					update=":messageDetailForm:display"
+					oncomplete="messageDialog.show()" title="View">
+					<f:setPropertyActionListener value="#{message}"
+						target="#{messageControler.selectedMessage}" />
+				</p:commandLink>
+			</p:column>
+
+			<p:column sortBy="#{message.title}">
+				<f:facet name="header">
+					<h:outputText value="title" />
+				</f:facet>
+				<h:outputText value="#{message.title}" />
+			</p:column>
+
+			<p:column sortBy="#{message.time}">
+				<f:facet name="header">
+					<h:outputText value="time" />
+				</f:facet>
+				<h:outputText value="#{messageControler.convertTime(message.time)}" />
+			</p:column>
+
+			<p:column sortBy="#{message.statue}">
+				<f:facet name="header">
+					<h:outputText value="authority" />
+				</f:facet>
+				<h:outputText value="#{message.statue}" />
+			</p:column>
+
+			<f:facet name="footer">
+				<p:commandButton value="Compose"
+					oncomplete="newMessageDialog.show()" icon="ui-icon-star"
+					title="Conpose" />
+				<p:commandButton value="Delete Messages"
+					actionListener="#{messageControler.doDeleteMessages}"
+					update="dataTable" icon="ui-icon-trash" />
+			</f:facet>
+		</p:dataTable>
+
+		<p:commandButton value="logoff" action="#{messageControler.logoff}"
+			update="form" />
+	</h:form>
+
+
+	<p:dialog header="Message Detail" widgetVar="messageDialog"
+		resizable="false" id="messageDlg">
+		<h:form id="messageDetailForm">
+			<p:panelGrid id="display" columns="2" cellpadding="4"
+				style="margin:0 auto;">
+				<h:outputText value="Sender :"></h:outputText>
+				<h:outputText value="#{messageControler.selectedMessage.senderName}" />
+
+				<h:outputText value="title :"></h:outputText>
+				<h:outputText value="#{messageControler.selectedMessage.title}" />
+
+				<h:outputText value="body :"></h:outputText>
+				<h:outputText value="#{messageControler.selectedMessage.body}" />
+
+				<h:outputText value="time :"></h:outputText>
+				<h:outputText
+					value="#{messageControler.convertTime(messageControler.selectedMessage.time)}" />
+
+				<f:facet name="footer">
+					<p:commandButton value="reply"
+						oncomplete="newMessageDialog.show();" actionListener="#{messageControler.doReplyMessage}"/>
+				</f:facet>
+			</p:panelGrid>
+		</h:form>
+	</p:dialog>
+
+
+	<p:dialog header="Create New Message" widgetVar="newMessageDialog"
+		resizable="false" id="newMessageDlg">
+		<h:form id="newMessageForm">
+			<p:panelGrid id="displayNewMessage" columns="2" cellpadding="4"
+				style="margin:0 auto;">
+				<h:outputText id="recieverNameInput" value="Reciever Name :"></h:outputText>
+				<p:inputText value="#{messageControler.newMessage.recieverName}"
+					required="true" requiredMessage="Please Enter reciever name!" />
+
+				<h:outputText value="title :"></h:outputText>
+				<p:inputText value="#{messageControler.newMessage.title}"
+					required="true" requiredMessage="Please Enter title!" />
+
+				<h:outputText value="body :"></h:outputText>
+				<p:inputTextarea value="#{messageControler.newMessage.body}"></p:inputTextarea>
+
+
+				<f:facet name="footer">
+					<p:commandButton value="Send" update=":form:dataTable, :growl"
+						oncomplete="newMessageDialog.hide(); "
+						actionListener="#{messageControler.doSendMessage}" />
+					<p:commandButton type="reset" value="Reset"></p:commandButton>
+				</f:facet>
+			</p:panelGrid>
+		</h:form>
+	</p:dialog>
+	<p:growl id="growl" showDetail="true" life="5000" />
+</h:body>
+</html>

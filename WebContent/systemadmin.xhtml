@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{systemAdminControler.onRefresh()}
+			<h:form id="form">
+				<p:toolbar id="toolbar">
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{dic.dic['AskForLeave']}"
+							rendered="#{systemAdminControler.currentUser.condition != 'leaving'}"
+							oncomplete="leaveDlg_w.show()"></p:commandButton>
+						<p:commandButton value="#{dic.dic['BackToWork']}" actionListener="#{systemAdminControler.backToWork}"
+							rendered="#{systemAdminControler.currentUser.condition == 'leaving'}"
+							oncomplete="leaveDlg_w.show()"></p:commandButton>
+						<p:commandButton value="#{dic.dic['AskForCordinator']}" rendered="false"></p:commandButton>
+						<p:commandButton value="#{dic.dic['AskForShutdownSystem']}" rendered="false"></p:commandButton>
+						<p:commandButton value="#{dic.dic['ChangeDefaultRoleAuthority']}"
+							rendered="false"></p:commandButton>
+					</p:toolbarGroup>
+
+					<p:toolbarGroup align="right">
+						<p:commandButton value="#{dic.dic['Refresh']}"
+							actionListener="#{systemAdminControler.onRefresh()}"
+							update="@all" />
+					</p:toolbarGroup>
+				</p:toolbar>
+				<p:dataTable id="dataTable" var="system"
+					value="#{systemAdminControler.systemListModel}"
+					selectionMode="single"
+					selection="#{systemAdminControler.selectedSystem}">
+					<p:ajax event="rowSelect" update=":form:toolbar"></p:ajax>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['SystemName']}" />
+						</f:facet>
+
+						<h:outputText value="#{system.name}" />
+
+					</p:column>
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Url']}" />
+						</f:facet>
+						<h:outputText value="#{system.url}" />
+					</p:column>
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Description']}" />
+						</f:facet>
+						<h:outputText value="#{system.description}" />
+					</p:column>
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Duration']}" />
+						</f:facet>
+						<h:outputText value="#{system.duration}" />
+					</p:column>
+
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Status']}" />
+						</f:facet>
+						<h:outputText value="#{system.status}"></h:outputText>
+
+					</p:column>
+
+
+					<p:column style="width:3%;">
+
+						<p:commandButton value="#{dic.dic['Detial']}" oncomplete="sysDetialDlg_w.show()"
+							update=":sysDetialDlg">
+							<f:setPropertyActionListener
+								target="#{systemAdminControler.selectedSystem}"
+								value="#{system}"></f:setPropertyActionListener>
+						</p:commandButton>
+					</p:column>
+				</p:dataTable>
+
+
+
+			</h:form>
+
+
+			<p:dialog header="#{dic.dic['SystemDetial']}" id="sysDetialDlg" modal="true"
+				appendToBody="true" widgetVar="sysDetialDlg_w">
+
+
+				<h:panelGrid columns="2">
+					<h:outputText value="#{dic.dic['Name']} : " />
+					<h:outputText value="#{systemAdminControler.selectedSystem.name}" />
+
+					<h:outputText value="#{dic.dic['Url']} : " />
+					<h:outputText value="#{systemAdminControler.selectedSystem.url}" />
+
+					<h:outputText value="#{dic.dic['Description']} : " />
+					<h:outputText
+						value="#{systemAdminControler.selectedSystem.description}" />
+
+					<h:outputText value="#{dic.dic['Duration']} : " />
+					<h:outputText
+						value="#{systemAdminControler.selectedSystem.duration}" />
+
+					<h:outputText value="#{dic.dic['Status']} : " />
+					<h:outputText value="#{systemAdminControler.selectedSystem.status}" />
+				</h:panelGrid>
+				<p:commandButton value="#{dic.dic['Shutdown']}"
+					rendered="#{systemAdminControler.selectedSystem.status.ordinal()==1}"
+					actionListener="#{systemAdminControler.shutDownSystem}"
+					update="@parent :form:dataTable"></p:commandButton>
+				<p:commandButton value="#{dic.dic['Startup']}"
+					rendered="#{systemAdminControler.selectedSystem.status.ordinal()==0}"
+					actionListener="#{systemAdminControler.startupSystem}"
+					update="@parent :form:dataTable"></p:commandButton>
+				<p:toolbar id="toolbar">
+					<p:toolbarGroup align="left">
+						<p:commandButton id="changeScheduleBtn" value="#{dic.dic['ChangeSchedule']}"
+							type="button"></p:commandButton>
+						<p:overlayPanel for="changeScheduleBtn" my="left buttom"
+							widgetVar="changeSchedulePanel_w" hideEffect="fade"
+							dynamic="true" appendToBody="true">
+							<h:form>
+								<p:outputPanel>
+									<h:panelGrid columns="2">
+										<h:outputText value="#{dic.dic['StartFrom']} : " />
+										<p:calendar value="#{systemAdminControler.startFrom}"
+											pattern="HH:mm" timeOnly="true" required="true"
+											requiredMessage="start date is required" />
+										<h:outputText value="#{dic.dic['EndWith']}: " />
+										<p:calendar value="#{systemAdminControler.endWith}"
+											pattern="HH:mm" timeOnly="true" required="true"
+											requiredMessage="end date is required" />
+										<h:outputText value="#{dic.dic['Comment']} : " />
+										<p:inputTextarea value="#{systemAdminControler.comment}"
+											maxlength="250" required="true"
+											requiredMessage="comment is required"></p:inputTextarea>
+									</h:panelGrid>
+									<p:commandButton value="#{dic.dic['Submit']}"
+										actionListener="#{systemAdminControler.applyScheduleChange}"
+										oncomplete="changeSchedulePanel_w.hide()" />
+								</p:outputPanel>
+							</h:form>
+						</p:overlayPanel>
+
+						<p:commandButton id="shutdownBtn" value="#{dic.dic['ShutdownSystem']}"
+							type="button"></p:commandButton>
+						<p:overlayPanel for="shutdownBtn" widgetVar="shutdownPanel_w"
+							hideEffect="fade" dynamic="true" appendToBody="true"
+							my="left buttom">
+							<h:form>
+								<p:outputPanel>
+									<h:panelGrid columns="2">
+										<h:outputText value="#{dic.dic['ShutdownTime']}: " />
+										<p:calendar value="#{systemAdminControler.startFrom}"
+											required="true" requiredMessage="start time is required"
+											pattern="MM/dd/yyyy HH:mm" />
+										<h:outputText value="#{dic.dic['RebootTime']}: " />
+										<p:calendar value="#{systemAdminControler.endWith}"
+											required="true" requiredMessage="end time is required"
+											pattern="MM/dd/yyyy HH:mm" />
+
+										<h:outputText value="#{dic.dic['Comment']}: " />
+										<p:inputTextarea value="#{systemAdminControler.comment}"
+											maxlength="250" required="true"
+											requiredMessage="comment is required"></p:inputTextarea>
+									</h:panelGrid>
+									<p:commandButton value="#{dic.dic['Submit']}"
+										actionListener="#{systemAdminControler.applyShutDownSystem}"
+										oncomplete="shutdownPanel_w.hide()" />
+								</p:outputPanel>
+							</h:form>
+						</p:overlayPanel>
+					</p:toolbarGroup>
+
+					<p:toolbarGroup align="left">
+					</p:toolbarGroup>
+				</p:toolbar>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['AskForLeaveApplication']}" id="leaveDlg"
+				widgetVar="leaveDlg_w">
+				<h:form>
+					<p:panelGrid columns="2">
+						<h:outputText value="#{dic.dic['LeaveTime']}: "></h:outputText>
+						<p:calendar value="#{systemAdminControler.startFrom}"
+							required="true" requiredMessage="start time is required" />
+						<h:outputText value="#{dic.dic['ReturnTime']}: "></h:outputText>
+						<p:calendar value="#{systemAdminControler.endWith}"
+							required="true" requiredMessage="end time is required" />
+
+					</p:panelGrid>
+					<h:outputText value="#{dic.dic['Reason']}: "></h:outputText>
+					<p:separator></p:separator>
+					<p:inputTextarea style="width:95%;height:250px" maxlength="250"
+						value="#{systemAdminControler.comment}" required="true"
+						requiredMessage="comment is required"></p:inputTextarea>
+					<p:commandButton value="#{dic.dic['Submit']}"
+						actionListener="#{systemAdminControler.applyForLeave}" update=":form" oncomplete="leaveDlg_w.hide()"></p:commandButton>
+				</h:form>
+
+			</p:dialog>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

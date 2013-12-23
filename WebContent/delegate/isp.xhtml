@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	#{missionControler.conversationBegin()}
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<h:form id="form">
+		<a href="../index.jsf">index</a>
+		<p:dataTable id="dataTable" var="mission"
+			value="#{missionControler.missionListModel}" paginator="true"
+			rows="10" selectionMode="multiple"
+			selection="#{missionControler.selectedMissions}"
+			paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+			<f:facet name="header">
+                    Mission List
+                </f:facet>
+			<p:column sortBy="#{mission.title}">
+				<f:facet name="header">
+					<h:outputText value="Mission title" />
+				</f:facet>
+				<p:commandLink value="#{mission.title}"
+					update=":missionDetailForm:display"
+					oncomplete="missionDialog.show()" title="View">
+					<f:setPropertyActionListener value="#{mission}"
+						target="#{missionControler.selectedMission}" />
+				</p:commandLink>
+			</p:column>
+
+			<p:column sortBy="#{mission.leaderName}">
+				<f:facet name="header">
+					<h:outputText value="leader name" />
+				</f:facet>
+				<h:outputText value="#{mission.leaderName}" />
+			</p:column>
+
+			<p:column sortBy="#{mission.progress}">
+				<f:facet name="header">
+					<h:outputText value="progress" />
+				</f:facet>
+				<h:outputText value="#{mission.progress}"
+					rendered="#{mission.progress != -1}" />
+				<h:outputText value="not delivered"
+					rendered="#{mission.progress == -1}" />
+			</p:column>
+
+			<f:facet name="footer">
+				<p:commandButton value="New Mission"
+					oncomplete="newMissionDialog.show()" icon="ui-icon-star"
+					title="Creates new mission" />
+				<p:commandButton value="Delete Missions"
+					actionListener="#{missionControler.doDeleteMissions}"
+					update="dataTable" icon="ui-icon-trash" />
+			</f:facet>
+		</p:dataTable>
+
+		<p:commandButton value="logoff" action="#{missionControler.logoff}"
+			update="form" />
+	</h:form>
+	<p:dialog header="Mission Detail" widgetVar="missionDialog"
+		resizable="false" id="missionDlg">
+		<h:form id="missionDetailForm">
+			<p:panelGrid id="display" columns="2" cellpadding="4"
+				style="margin:0 auto;">
+				<h:outputText value="Mission title :"></h:outputText>
+				<h:outputText value="#{missionControler.selectedMission.title}" />
+
+				<h:outputText value="Leader name :"></h:outputText>
+				<h:outputText value="#{missionControler.selectedMission.leaderName}"
+					rendered="#{missionControler.selectedMission.progress != -1}" />
+				<h:inputText value="#{missionControler.selectedMission.leaderName}"
+					required="true" requiredMessage="Please Enter leader name!"
+					rendered="#{missionControler.selectedMission.progress == -1}" />
+
+				<h:outputText value="description :"></h:outputText>
+				<h:outputText
+					value="#{missionControler.selectedMission.description}"
+					rendered="#{missionControler.selectedMission.progress != -1}" />
+				<h:inputTextarea
+					value="#{missionControler.selectedMission.description}"
+					required="true" requiredMessage="Please Enter description!"
+					rendered="#{missionControler.selectedMission.progress == -1}"></h:inputTextarea>
+
+
+				<f:facet name="footer">
+
+					<p:toolbar>
+						<p:toolbarGroup align="left"
+							rendered="#{missionControler.selectedMission.progress == -1}">
+							<p:commandButton value="Update" update=":form:dataTable, :growl"
+								oncomplete="missionDialog.hide();"
+								action="#{missionControler.doUpdateMission}" />
+
+							<p:commandButton value="Deliver" update=":form:dataTable, :growl"
+								oncomplete="missionDialog.hide();"
+								actionListener="#{missionControler.doDeliverMission}" />
+						</p:toolbarGroup>
+
+						<p:toolbarGroup align="left"
+							rendered="#{missionControler.selectedMission.progress != -1}">
+							<p:commandButton value="Modify" update=":form:dataTable, :growl"
+								oncomplete="missionDialog.hide();"
+								actionListener="#{missionControler.doModifyMission}" />
+						</p:toolbarGroup>
+
+					</p:toolbar>
+
+				</f:facet>
+			</p:panelGrid>
+		</h:form>
+	</p:dialog>
+
+	<p:dialog header="Create New Mission" widgetVar="newMissionDialog"
+		resizable="false" id="newMissionDlg">
+		<h:form id="newMissionForm">
+			<p:panelGrid id="displayNewMission" columns="2" cellpadding="4"
+				style="margin:0 auto;">
+				<h:outputText value="Mission title :"></h:outputText>
+				<h:inputText value="#{missionControler.newMission.title}"
+					required="true" requiredMessage="Please Enter title!" />
+
+				<h:outputText value="Leader name :"></h:outputText>
+				<h:inputText value="#{missionControler.newMission.leaderName}"
+					required="true" requiredMessage="Please Enter leader name!" />
+
+				<h:outputText value="description :"></h:outputText>
+				<h:inputTextarea value="#{missionControler.newMission.description}"
+					required="true" requiredMessage="Please Enter description!"></h:inputTextarea>
+
+				<f:facet name="footer">
+					<p:commandButton value="Submit" update=":form:dataTable, :growl"
+						oncomplete="newMissionDialog.hide(); "
+						actionListener="#{missionControler.doSaveMission}" />
+					<p:commandButton type="reset" value="Reset"></p:commandButton>
+				</f:facet>
+			</p:panelGrid>
+		</h:form>
+	</p:dialog>
+	<p:growl id="growl" showDetail="true" life="5000" />
+
+</h:body>
+</html>

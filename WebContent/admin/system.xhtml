@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{systemControler.onRefresh()}
+			<h:form id="form">
+
+				<p:toolbar>
+					<p:toolbarGroup>
+						<p:commandButton value="#{dic.dic['NewSystem']}"
+							oncomplete="sysDetial_w.show()" icon="ui-icon-star"
+							update=":sysDetial" title="#{dic.dic['CreateNewSystem']}"
+							actionListener="#{systemControler.startAddSystem}" />
+						<p:commandButton value="#{dic.dic['NewAdmin']}"
+							oncomplete="newSysAdminDetialDlg_w.show()" icon="ui-icon-star"
+							update=":newSysAdminDetialDlg"
+							title="#{dic.dic['SetUpNewAdmin']}" />
+					</p:toolbarGroup>
+					<p:toolbarGroup align="right">
+						<p:commandButton value="#{dic.dic['Refresh']}"
+							actionListener="#{systemControler.onRefresh()}" update="@all">
+
+						</p:commandButton>
+					</p:toolbarGroup>
+				</p:toolbar>
+				<p:separator></p:separator>
+				<p:dataTable id="dataTable" var="system"
+					value="#{systemControler.systemListModel}" selectionMode="single"
+					selection="#{systemControler.selectedSystem}">
+					<p:ajax event="rowSelect" oncomplete="sysDetial_w.show();"
+						listener="#{systemControler.startBrowseSystem}"
+						update=":sysDetial" />
+					<f:facet name="header">
+                    System List
+                </f:facet>
+					<p:column sortBy="#{system.name}">
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['SystemName']}" />
+						</f:facet>
+
+						<h:outputText value="#{system.name}" />
+
+					</p:column>
+
+					<p:column sortBy="#{system.url}">
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Url']}" />
+						</f:facet>
+						<h:outputText value="#{system.url}" />
+					</p:column>
+
+					<p:column sortBy="#{system.description}">
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Description']}" />
+						</f:facet>
+						<h:outputText value="#{system.description}" />
+					</p:column>
+
+					<p:column sortBy="#{system.duration}">
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Duration']}" />
+						</f:facet>
+						<h:outputText value="#{system.duration}" />
+					</p:column>
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="#{dic.dic['Status']}" />
+						</f:facet>
+						<h:outputText value="#{system.status}"></h:outputText>
+
+					</p:column>
+
+
+
+				</p:dataTable>
+				<p:separator></p:separator>
+				<p:dataTable value="#{systemControler.sysAdminListModel}"
+					var="sysAdmin" selectionMode="single"
+					selection="#{systemControler.selectedSysAdmin}">
+
+					<f:facet name="header">
+                    System Admin List
+                </f:facet>
+					<p:ajax event="rowSelect" update=":sysAdminDetialDlg"
+						oncomplete="sysAdminDetialDlg_w.show()" />
+					<p:column>
+						<h:outputText value="#{sysAdmin.systemName}"></h:outputText>
+					</p:column>
+
+					<p:column>
+						<h:outputText value="#{sysAdmin.userName}"></h:outputText>
+					</p:column>
+
+				</p:dataTable>
+			</h:form>
+			<p:dialog header="#{dic.dic['SetUpNewAdmin']}" modal="true"
+				appendToBody="true" widgetVar="newSysAdminDetialDlg_w"
+				resizable="false" id="newSysAdminDetialDlg">
+				<h:form>
+					<p:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">
+						<h:outputText value="#{dic.dic['Admin']} :"></h:outputText>
+
+						<p:autoComplete value="#{systemControler.newSysAdmin.userName}"
+							completeMethod="#{globalBean.completeUser}" required="true"
+							requiredMessage="Please enter target user name." global="false">
+							<f:validator binding="#{userExistValidator}">
+							</f:validator>
+
+						</p:autoComplete>
+
+						<h:outputText value="#{dic.dic['System']} :"></h:outputText>
+						<h:selectOneMenu value="#{systemControler.newSysAdmin.systemName}">
+							<f:selectItems value="#{systemControler.systemListModel}"
+								var="system" itemLabel="#{system.name}"
+								itemValue="#{system.name}" />
+						</h:selectOneMenu>
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								update=":form, :growl @parent"
+								onsuccess="newSysAdminDetialDlg_w.hide(); "
+								actionListener="#{systemControler.doSaveSysAdmin}" />
+							<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+						</f:facet>
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="#{dic.dic['AdminDetial']}"
+				widgetVar="sysAdminDetialDlg_w" modal="true" appendToBody="true"
+				resizable="false" id="sysAdminDetialDlg">
+				<h:form>
+					<h:panelGrid columns="2" cellpadding="4">
+						<h:outputText value="#{dic.dic['Admin']} :"></h:outputText>
+
+
+						<p:autoComplete
+							value="#{systemControler.selectedSysAdmin.userName}"
+							completeMethod="#{globalBean.completeUser}" required="true"
+							requiredMessage="Please enter target user name." global="false">
+							<f:validator binding="#{userExistValidator}">
+							</f:validator>
+
+						</p:autoComplete>
+						<h:outputText value="#{dic.dic['System']} :"></h:outputText>
+						<h:selectOneMenu
+							value="#{systemControler.selectedSysAdmin.systemName}">
+							<f:selectItems value="#{systemControler.systemListModel}"
+								var="system" itemLabel="#{system.name}"
+								itemValue="#{system.name}" />
+						</h:selectOneMenu>
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Update']}"
+								update=":form, :growl" oncomplete="sysAdminDetialDlg_w.hide(); "
+								actionListener="#{systemControler.doUpdateSysAdmin}" />
+							<p:commandButton value="#{dic.dic['Delete']}" update=":form" oncomplete="sysAdminDetialDlg_w.hide()"
+								actionListener="#{systemControler.doDeleteSysAdmin}"></p:commandButton>
+							<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+						</f:facet>
+					</h:panelGrid>
+				</h:form>
+			</p:dialog>
+
+
+			<p:dialog id="sysDetial" widgetVar="sysDetial_w" resizable="true"
+				header="#{dic.dic['SetUpOrEditSystem']}" draggable="true"
+				closable="false" width="450" modal="true" appendToBody="true"
+				visible="#{systemControler.editSystemMode or systemControler.addSystemMode or systemControler.browseSystemMode}">
+				<h:form id="sysDetialForm">
+					<h:panelGrid columns="2" id="basicInfo">
+						<h:outputText value="#{dic.dic['SystemName']} :*" />
+						<h:outputText value="#{systemControler.selectedSystem.name}"
+							rendered="#{systemControler.browseSystemMode}" />
+						<p:inputText value="#{systemControler.editSystem.name}"
+							maxlength="50" required="true"
+							requiredMessage="Name is required."
+							rendered="#{systemControler.addSystemMode or systemControler.editSystemMode}" />
+
+						<h:outputText value="#{dic.dic['Url']} :" />
+						<h:outputText value="#{systemControler.selectedSystem.url}"
+							rendered="#{systemControler.browseSystemMode}" />
+						<p:inputText value="#{systemControler.editSystem.url}"
+							maxlength="50" required="true" requiredMessage="url is required"
+							rendered="#{systemControler.addSystemMode or systemControler.editSystemMode}" />
+
+						<h:outputText value="#{dic.dic['Description']} :" />
+						<h:outputText
+							value="#{systemControler.selectedSystem.description}"
+							rendered="#{systemControler.browseSystemMode}" />
+						<p:inputText value="#{systemControler.editSystem.description}"
+							maxlength="50" required="true"
+							requiredMessage="description is required"
+							rendered="#{systemControler.addSystemMode or systemControler.editSystemMode}" />
+
+						<h:outputText value="#{dic.dic['WarPath']} :" />
+						<h:outputText value="#{systemControler.selectedSystem.warPath}"
+							rendered="#{systemControler.browseSystemMode}" />
+						<p:inputText value="#{systemControler.editSystem.warPath}"
+							maxlength="50" required="true"
+							requiredMessage="war path is required"
+							rendered="#{systemControler.addSystemMode or systemControler.editSystemMode}" />
+
+						<h:outputText value="#{dic.dic['Duration']} :" />
+						<h:outputText value="#{systemControler.selectedSystem.duration}"
+							rendered="#{systemControler.browseSystemMode}" />
+						<p:inputText value="#{systemControler.editSystem.duration}"
+							maxlength="50" required="true"
+							requiredMessage="duration is required"
+							rendered="#{systemControler.addSystemMode or systemControler.editSystemMode}" />
+
+					</h:panelGrid>
+					<p:fieldset legend="System authorised function" toggleable="true"
+						toggleSpeed="500"
+						rendered="#{systemControler.editSystemMode or systemControler.addSystemMode}">
+
+						<p:panelGrid columns="2" id="editFunction">
+							<h:outputText value="#{dic.dic['Name']}" />
+
+							<p:inputText value="#{systemControler.editFunction.functionName}"
+								size="20" maxlength="100" />
+
+							<h:outputText value="#{dic.dic['Description']}" />
+
+							<p:inputText value="#{systemControler.editFunction.description}"
+								size="20" maxlength="100" />
+						</p:panelGrid>
+						<p:commandButton value="#{dic.dic['AddFunction']}"
+							process="@parent" actionListener="#{systemControler.addFunction}"
+							update="functionTable @parent" />
+					</p:fieldset>
+					<p:dataTable id="functionTable" editable="true"
+						value="#{systemControler.temporaryFunctionList}" var="entry"
+						selectionMode="single"
+						selection="#{systemControler.selectedFunction}" rows="5"
+						paginator="true" paginatorAlwaysVisible="true"
+						paginatorPosition="bottom" first="0"
+						paginatorTemplate="{PreviousPageLink} {CurrentPageReport} {NextPageLink}">
+
+						<p:column>
+							<p:cellEditor>
+								<f:facet name="output">
+									<h:outputText value="#{entry.functionName}" />
+								</f:facet>
+								<f:facet name="input">
+									<h:inputText value="#{entry.functionName}" required="true"
+										maxlength="100" requiredMessage="Name required." />
+								</f:facet>
+							</p:cellEditor>
+						</p:column>
+						<p:column>
+							<p:cellEditor>
+								<f:facet name="output">
+									<h:outputText value="#{entry.description}" />
+								</f:facet>
+								<f:facet name="input">
+									<h:inputText value="#{entry.description}" maxlength="100"
+										required="true" requiredMessage="description is required" />
+								</f:facet>
+							</p:cellEditor>
+						</p:column>
+
+						<p:column
+							rendered="#{systemControler.editSystemMode or systemControler.addSystemMode}">
+							<p:rowEditor />
+						</p:column>
+					</p:dataTable>
+
+					<h:panelGrid columns="2">
+						<p:toolbar>
+							<p:toolbarGroup align="left"
+								rendered="#{systemControler.browseSystemMode}">
+								<p:commandButton value="#{dic.dic['OK']}" ajax="true"
+									oncomplete="sysDetial_w.hide();" update=":form"
+									actionListener="#{systemControler.quitAllSystemMode}" />
+							</p:toolbarGroup>
+							<p:toolbarGroup align="right"
+								rendered="#{systemControler.browseSystemMode}">
+								<p:commandButton value="#{dic.dic['Edit']}" update=":sysDetial"
+									actionListener="#{systemControler.startEditSystem}" />
+								<p:commandButton value="#{dic.dic['Delete']}"
+									actionListener="#{systemControler.doDeleteSystem}"
+									rendered="#{systemControler.browseSystemMode}"
+									update="@all" oncomplete="sysDetial_w.hide()" />
+
+							</p:toolbarGroup>
+							<p:toolbarGroup align="left"
+								rendered="#{!systemControler.browseSystemMode}">
+								<p:commandButton value="#{dic.dic['Apply']}"
+									actionListener="#{systemControler.applySystem}"
+									onsuccess="sysDetial_w.hide()" update=":form,:sysDetial" />
+							</p:toolbarGroup>
+							<p:toolbarGroup align="right"
+								rendered="#{!systemControler.browseSystemMode}">
+								<p:commandButton value="#{dic.dic['Discard']}" ajax="true"
+									actionListener="#{systemControler.discardSystem}"
+									immediate="true" onclick="sysDetial_w.hide()" />
+							</p:toolbarGroup>
+						</p:toolbar>
+					</h:panelGrid>
+				</h:form>
+			</p:dialog>
+
+
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

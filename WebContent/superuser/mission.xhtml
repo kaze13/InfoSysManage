@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<h:head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{missionControler.onRefresh()}
+
+			<script type="text/javascript">
+				function resetWizard() {
+					wizard_w.loadStep(wizard_w.cfg.steps[0], true);
+				}
+			</script>
+
+			<p:layout>
+				<p:layoutUnit position="north" styleClass="nestedUnit"
+					resizable="false">
+					<h:form id="toolbarForm">
+
+						<p:toolbar id="toolbar">
+							<p:toolbarGroup align="left">
+
+								<p:commandButton value="#{dic.dic['NewMission']}"
+									oncomplete="editMissionDialog.show();resetWizard()"
+									update=":editMissionForm"
+									actionListener="#{missionControler.startCreateNewMission()}"
+									icon="ui-icon-star" title="#{dic.dic['CreateNewMission']}">
+
+								</p:commandButton>
+
+								<p:commandButton value="#{dic.dic['Import']}"
+									actionListener="#{missionControler.getMissionObjectList}"
+									oncomplete="importDlg_w.show()" update=":importDlg"></p:commandButton>
+
+							</p:toolbarGroup>
+							<p:toolbarGroup align="right">
+
+								<p:commandButton style="visibility: hidden" />
+								<p:menuButton value="#{dic.dic['Layout']}">
+									<p:menuitem value="#{dic.dic['Horizontal']}" update="@all"
+										actionListener="#{missionControler.changeLayoutHorizontal}" />
+									<p:menuitem value="#{dic.dic['Vertical']}" update="@all"
+										actionListener="#{missionControler.changeLayoutVertical}" />
+								</p:menuButton>
+								<p:commandButton value="#{dic.dic['Refresh']}"
+									actionListener="#{missionControler.onRefresh()}" update="@all" />
+							</p:toolbarGroup>
+						</p:toolbar>
+					</h:form>
+				</p:layoutUnit>
+				<p:layoutUnit position="center" styleClass="nestedUnit"
+					binding="#{missionControler.dataUnit}" resizable="true">
+					<h:form id="form">
+
+						<p:treeTable id="dataTable" var="mission"
+							value="#{missionControler.root}" selectionMode="single"
+							selection="#{missionControler.selectedNode}">
+							<p:ajax event="select" update=":detialForm"
+								listener="#{toolBox.initMissionTarget(missionControler.selectedNode.data)}" />
+							<f:facet name="header">
+                   				 Mission List
+                			</f:facet>
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['Type']}" />
+								</f:facet>
+								<h:outputText value="#{missionControler.getTypeStr(mission)}" />
+
+							</p:column>
+							<p:column sortBy="#{mission.title}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['Title']}" />
+								</f:facet>
+								<h:outputText value="#{mission.title}" />
+
+
+							</p:column>
+
+							<p:column sortBy="#{mission.leaderName}">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['LeaderName']}" />
+								</f:facet>
+								<h:outputText value="#{mission.leaderName}" />
+
+							</p:column>
+
+							<p:column sortBy="#{mission.progress}" style="width:10%">
+								<f:facet name="header">
+									<h:outputText value="#{dic.dic['Progress']}" />
+								</f:facet>
+								<h:outputText value="#{dic.dic['NotCompleted']}"
+									rendered="#{mission.progress >= 0 and mission.progress lt 100}" />
+								<h:outputText value="#{dic.dic['NotVerified']}"
+									rendered="#{mission.progress == -1}" />
+								<h:outputText value="#{dic.dic['Verifying']}"
+									rendered="#{mission.progress == -2}" />
+								<h:outputText value="#{dic.dic['Rejected']}"
+									rendered="#{mission.progress == -3}" />
+								<h:outputText value="#{dic.dic['Submitted']}"
+									rendered="#{mission.progress == -4}" />
+								<h:outputText value="#{dic.dic['Completed']}"
+									rendered="#{mission.progress == 100}" />
+								<h:outputText value="#{dic.dic['SubmissionRejected']}"
+									rendered="#{mission.progress == -6}" />
+							</p:column>
+
+
+						</p:treeTable>
+					</h:form>
+				</p:layoutUnit>
+				<p:layoutUnit position="south" collapsible="true"
+					binding="#{missionControler.detialUnit}" styleClass="nestedUnit"
+					size="65%" resizable="true">
+					<h:form id="detialForm">
+
+						<h:panelGroup layout="block"
+							rendered="#{missionControler.selectedNode == null}">
+							<div class="well selected-mail-message"
+								style="background-color: #e8e8e8">
+								<h:outputText styleClass="no-mail-message"
+									value="#{dic.dic['NoMissionSelected']}"></h:outputText>
+							</div>
+						</h:panelGroup>
+						<p:toolbar id="toolbar"
+							rendered="#{missionControler.selectedNode.data != null}">
+							<p:toolbarGroup align="left"
+								rendered="#{missionControler.isMission(missionControler.selectedNode.data)}">
+								<p:commandButton value="#{dic.dic['Update']}"
+									oncomplete="editMissionDialog.show();resetWizard();"
+									update=":editMissionDlg"
+									actionListener="#{missionControler.startUpdateMission}"
+									rendered="#{missionControler.selectedNode.data.progress == -1 or missionControler.selectedNode.data.progress==-3}"></p:commandButton>
+								<p:commandButton value="#{dic.dic['Verify']}"
+									update=":form:dataTable,:detialForm ,toolbar,:growl"
+									rendered="#{missionControler.selectedNode.data.progress == -1 or missionControler.selectedNode.data.progress==-3}"
+									actionListener="#{missionControler.doVerifyMission}">
+									<p:confirmDialog global="true" showEffect="fade">
+										<p:commandButton value="#{dic.dic['Yes']}" type="button"
+											styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+										<p:commandButton value="#{dic.dic['No']}" type="button"
+											styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+									</p:confirmDialog>
+								</p:commandButton>
+
+
+
+
+								<p:commandButton value="#{dic.dic['DeleteMission']}"
+									actionListener="#{missionControler.doDeleteMission}"
+									update="@all" icon="ui-icon-trash"
+									rendered="#{missionControler.selectedNode.data.progress == -3 || missionControler.selectedNode.data.progress == -1}" />
+								<p:commandButton value="#{dic.dic['SaveAsTemplate']}"
+									actionListener="#{missionControler.exportAsObjectFile}"
+									ajax="false" onclick="statusDialog.show()">
+									<p:fileDownload value="#{missionControler.downloadFile}" />
+								</p:commandButton>
+							</p:toolbarGroup>
+
+
+							<p:toolbarGroup align="left"
+								rendered="#{missionControler.selectedNode.data.progress == -4}">
+								<p:commandButton value="#{dic.dic['ViewReport']}"
+									update=":reportDlg"
+									actionListener="#{missionControler.showMissionReport}"
+									oncomplete="reportDlg_w.show()" />
+								<p:commandButton value="#{dic.dic['Accept']}"
+									actionListener="#{missionControler.acceptMissionReport}"
+									update=":form:dataTable,detialForm, :messages" />
+								<p:commandButton value="#{dic.dic['Reject']}"
+									oncomplete="rejectDlg_w.show()"
+									update=":form:dataTable,detialForm,:rejectDlg, :messages" />
+							</p:toolbarGroup>
+						</p:toolbar>
+
+
+						<util:mission mission="#{missionControler.selectedNode.data}"></util:mission>
+					</h:form>
+				</p:layoutUnit>
+
+			</p:layout>
+
+
+			<p:dialog header="#{dic.dic['EditOrCreateMission']}"
+				widgetVar="editMissionDialog" resizable="false" id="editMissionDlg"
+				modal="true" appendToBody="true" width="700">
+				<h:form id="editMissionForm" enctype="multipart/form-data">
+					<p:wizard flowListener="#{missionControler.onFlowProcess}"
+						widgetVar="wizard_w">
+						<p:tab id="information" title="#{dic.dic['Information']}">
+							<h:panelGrid id="displayNewMission" columns="2" cellpadding="4">
+								<h:outputLabel for="newTitle"
+									value="#{dic.dic['MissionTitle']} :*" />
+								<p:inputText id="newTitle" maxlength="50"
+									value="#{missionControler.editMission.title}" required="true"
+									requiredMessage="Title is required." />
+
+								<h:outputLabel for="newLeader"
+									value="#{dic.dic['LeaderName']} :*" />
+								<p:autoComplete id="newLeader"
+									value="#{missionControler.editMission.leaderName}"
+									completeMethod="#{globalBean.completeUser}" required="true"
+									requiredMessage="Please enter target user name." global="false">
+									<f:validator binding="#{userExistValidator}">
+									</f:validator>
+
+								</p:autoComplete>
+
+								<h:outputText value="#{dic.dic['SkipToLast']}: " />
+								<h:selectBooleanCheckbox value="#{missionControler.skip}" />
+							</h:panelGrid>
+
+						</p:tab>
+
+						<p:tab id="dependentSystems"
+							title="#{dic.dic['DependentSystems']}">
+
+							<p:pickList id="pickList" converter="systemConverter"
+								value="#{missionControler.dependentSystem}" var="system"
+								itemLabel="#{system.name}" itemValue="#{system}" />
+							<h:outputText value="#{dic.dic['SkipToLast']}: " />
+							<h:selectBooleanCheckbox value="#{missionControler.skip}" />
+						</p:tab>
+
+						<p:tab id="dependentFunctions"
+							title="#{dic.dic['DependentFunctions']}">
+							<p:fieldset id="source" legend="Source">
+								<p:dataTable id="sourceFunction" var="function"
+									value="#{missionControler.sourceFunctionModel}">
+									<p:column style="width:20px">
+										<h:outputText id="dragIcon"
+											styleClass="ui-icon ui-icon-arrow-4" />
+										<p:draggable for="dragIcon" revert="true" />
+									</p:column>
+
+									<p:column headerText="#{dic.dic['System']}">
+										<h:outputText value="#{function.systemName}" />
+									</p:column>
+
+									<p:column headerText="#{dic.dic['Function']}">
+										<h:outputText value="#{function.functionName}" />
+									</p:column>
+								</p:dataTable>
+							</p:fieldset>
+							<p:fieldset id="target" legend="Target" style="margin-top:20px">
+								<p:outputPanel id="dropArea">
+									<h:outputText value="!!!Drop here!!!"
+										rendered="#{empty missionControler.targetFunctionModel}"
+										style="font-size:24px;" />
+									<p:dataTable id="targetTable"
+										value="#{missionControler.targetFunctionModel}" var="function">
+										<p:column style="width:20px">
+											<h:outputText id="dragIcon2"
+												styleClass="ui-icon ui-icon-arrow-4" />
+											<p:draggable for="dragIcon2" revert="true" />
+										</p:column>
+										<p:column>
+											<h:outputText value="#{function.systemName}"></h:outputText>
+										</p:column>
+
+										<p:column>
+											<h:outputText value="#{function.functionName}"></h:outputText>
+										</p:column>
+										<p:column style="width:20px">
+											<p:commandButton value="#{dic.dic['Delete']}"
+												immediate="true"
+												action="#{missionControler.deleteTargetFunction(function)}"
+												update="@form"></p:commandButton>
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+
+								<p:droppable for="target" tolerance="touch"
+									activeStyleClass="ui-state-highlight"
+									datasource="sourceFunction">
+									<p:ajax listener="#{missionControler.onFunctionDroped}"
+										update="dropArea sourceFunction" />
+								</p:droppable>
+							</p:fieldset>
+							<h:outputText value="#{dic.dic['SkipToLast']}: " />
+							<h:selectBooleanCheckbox value="#{missionControler.skip}" />
+						</p:tab>
+
+						<p:tab id="description" title="#{dic.dic['Description']}">
+							<h:outputLabel value="#{dic.dic['Description']} :" />
+							<p:inputTextarea style="width:98%;height:200px"
+								autoResize="false" maxlength="250" required="true"
+								requiredMessage="description is required"
+								value="#{missionControler.editMission.description}" />
+
+							<p:separator />
+							<h:outputLabel for="attach" value="#{dic.dic['AttachFile']}: "></h:outputLabel>
+							<p:fileUpload id="attach" value="#{missionControler.file}"
+								mode="simple" />
+							<p:commandButton value="#{dic.dic['Submit']}" ajax="false"
+								oncomplete="editMissionDialog.hide(); "
+								onclick="statusDialog.show()"
+								rendered="#{missionControler.addMode}"
+								actionListener="#{missionControler.doSaveMission}" />
+							<p:commandButton value="#{dic.dic['Update']}" ajax="false"
+								onclick="statusDialog.show()"
+								rendered="#{missionControler.updateMode}"
+								oncomplete="editMissionDialog.hide(); "
+								actionListener="#{missionControler.doUpdateMission}" />
+							<p:commandButton type="reset" value="#{dic.dic['Reset']}"></p:commandButton>
+						</p:tab>
+
+					</p:wizard>
+
+
+
+				</h:form>
+			</p:dialog>
+
+
+			<p:dialog header="#{dic.dic['ReportDetial']}" widgetVar="reportDlg_w"
+				modal="true" appendToBody="true" id="reportDlg" resizable="false"
+				dynamic="true">
+				<h:form>
+					<p:panelGrid columns="2">
+						<h:outputText value="#{dic.dic['MissionReport']}: "></h:outputText>
+						<h:outputText
+							value="#{toolBox.printFormatString(missionControler.selectedNode.data.taskReport)}"
+							style="white-space:pre"></h:outputText>
+						<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+						<h:outputText value="#{dic.dic['NoAttachFile']}"
+							rendered="#{missionControler.selectedNode.data.taskReport.fileId=='none'}" />
+
+						<p:commandLink id="downloadLink"
+							value="#{dic.dic['ClickToDownload']}" style="color: #0088cc"
+							rendered="#{missionControler.selectedNode.data.taskReport.fileId!='none'}"
+							ajax="false" actionListener="#{missionControler.processDownload}">
+							<p:fileDownload value="#{missionControler.downloadFile}" />
+						</p:commandLink>
+					</p:panelGrid>
+					<p:separator></p:separator>
+					<h:outputText value="#{dic.dic['PartitionReportList']} :"
+						style="font-size:18px"></h:outputText>
+					<p:dataTable
+						value="#{missionControler.selectedNode.data.partitionList}"
+						var="partition">
+						<p:ajax event="rowToggle"
+							listener="#{missionControler.onPartitionToggle}"
+							update="partitionExpansion" />
+
+						<p:column style="width:4%">
+							<p:rowToggler />
+						</p:column>
+						<p:column>
+							<h:outputText value="#{partition.title}"></h:outputText>
+						</p:column>
+						<p:column>
+							<h:outputText value="#{partition.leaderName}"></h:outputText>
+						</p:column>
+
+						<p:rowExpansion id="partitionExpansion">
+							<div style="width: 96%; float: right;">
+								<p:panelGrid columns="2" style="width:50%;">
+									<h:outputText value="#{dic.dic['PartitionReport']} : "></h:outputText>
+									<h:outputText
+										value="#{toolBox.printFormatString(partition.taskReport)}"
+										style="white-space:pre"></h:outputText>
+									<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+									<h:outputText value="#{dic.dic['NoAttachfile']}"
+										rendered="#{partition.taskReport.fileId=='none'}" />
+
+									<p:commandLink id="downloadLink"
+										value="#{dic.dic['ClickToDownload']}" style="color: #0088cc"
+										rendered="#{partition.taskReport.fileId!='none'}" ajax="false"
+										actionListener="#{missionControler.processDownload}">
+										<p:fileDownload value="#{missionControler.downloadFile}" />
+									</p:commandLink>
+								</p:panelGrid>
+								<p:separator></p:separator>
+								<h:outputText value="#{dic.dic['UnitReportList']}:"
+									style="font-size:18px"></h:outputText>
+								<p:dataTable value="#{partition.unitList}" var="unit">
+									<p:column>
+										<h:outputText value="#{unit.title}"></h:outputText>
+									</p:column>
+									<p:column>
+										<h:outputText value="#{unit.leaderName}"></h:outputText>
+									</p:column>
+
+									<p:column>
+										<p:commandButton id="unitReportBtn"
+											value="#{dic.dic['Detial']}" update=":unitReportDlg"
+											oncomplete="unitReportDlg_w.show()"
+											actionListener="#{missionControler.showUnitReport(unit)}"></p:commandButton>
+
+									</p:column>
+
+								</p:dataTable>
+							</div>
+						</p:rowExpansion>
+					</p:dataTable>
+				</h:form>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['RejectDetial']}" widgetVar="rejectDlg_w"
+				modal="true" appendToBody="true" id="rejectDlg" resizable="false"
+				width="400">
+				<h:form>
+					<h:panelGrid columns="1">
+						<h:outputText value="#{dic.dic['Report']} : " />
+						<p:inputTextarea style="width:350px;height:200px" maxlength="250"
+							required="true" requiredMessage="report is required"
+							autoResize="false" value="#{missionControler.report}" />
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								oncomplete="rejectDlg_w.hide()"
+								update=":form:dataTable,:detialForm"
+								actionListener="#{missionControler.submitRejectReport}"></p:commandButton>
+
+						</f:facet>
+					</h:panelGrid>
+
+				</h:form>
+			</p:dialog>
+			<p:dialog header="#{dic.dic['SubmitTheMission']}"
+				widgetVar="submitMissionDlg_w" modal="true" appendToBody="true"
+				id="submitMissionDlg">
+				<h:form id="reportForm" enctype="multipart/form-data">
+					<p:panelGrid columns="1" cellpadding="4" style="margin:0 auto;">
+						<p:row>
+							<p:inputTextarea value="#{missionControler.report}"
+								counter="display" maxlength="250" required="true"
+								requiredMessage="report is required" autoResize="false"
+								counterTemplate="{0} characters remaining"
+								style="width:300px;height:300px" />
+							<br></br>
+							<h:outputText id="display" />
+						</p:row>
+						<p:row>
+							<h:outputText value="#{dic.dic['AttachFile']}:"></h:outputText>
+							<br></br>
+							<p:fileUpload value="#{missionControler.file}" mode="simple" />
+						</p:row>
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								actionListener="#{missionControler.submitMission}"
+								oncomplete="submitMissionDlw_w.hide()" ajax="false"
+								onclick="statusDialog.show()" />
+
+						</f:facet>
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="#{dic.dic['UnitReport']}" id="unitReportDlg"
+				widgetVar="unitReportDlg_w" modal="true" appendToBody="true">
+				<h:form>
+
+
+					<h:panelGrid columns="2">
+						<h:outputText value="#{dic.dic['ReportDetial']}: "></h:outputText>
+						<h:outputText
+							value="#{toolBox.printFormatString(missionControler.selectedUnit.taskReport)}"
+							style="white-space:pre"></h:outputText>
+						<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+						<h:outputText value="#{dic.dic['NoAttachFile']}"
+							rendered="#{missionControler.selectedUnit.taskReport.fileId=='none'}" />
+
+						<p:commandLink id="downloadLink"
+							value="#{dic.dic['ClickToDownload']}" style="color: #0088cc"
+							rendered="#{missionControler.selectedUnit.taskReport.fileId!='none'}"
+							ajax="false" actionListener="#{missionControler.processDownload}">
+							<p:fileDownload value="#{missionControler.downloadFile}" />
+						</p:commandLink>
+					</h:panelGrid>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="#{dic.dic['Import']}" id="importDlg"
+				widgetVar="importDlg_w">
+				<h:form>
+					<p:treeTable id="dataTable" var="mission"
+						value="#{missionControler.exportRoot}">
+						<f:facet name="header">
+                   				 Mission Template List
+                			</f:facet>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['Type']}" />
+							</f:facet>
+							<h:outputText value="#{missionControler.getTypeStr(mission)}" />
+
+						</p:column>
+						<p:column sortBy="#{mission.title}">
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['Title']}" />
+							</f:facet>
+							<h:outputText value="#{mission.title}" />
+
+
+						</p:column>
+
+						<p:column sortBy="#{mission.leaderName}">
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['LeaderName']}" />
+							</f:facet>
+							<h:outputText value="#{mission.leaderName}" />
+
+						</p:column>
+						<p:column>
+							<p:commandButton value="#{dic.dic['Detial']}"
+								update=":exportDetialDlg" oncomplete="exportDetialDlg_w.show()">
+								<f:setPropertyActionListener
+									target="#{missionControler.selectedExportData}"
+									value="#{mission}"></f:setPropertyActionListener>
+							</p:commandButton>
+						</p:column>
+						<p:column>
+							<p:commandButton value="#{dic.dic['choose']}"
+								rendered="#{missionControler.getTypeStr(mission) == 'Mission'}"
+								actionListener="#{missionControler.startImportMission(mission)}"
+								update=":editMissionDlg"
+								oncomplete="editMissionDialog.show();resetWizard()">
+
+							</p:commandButton>
+						</p:column>
+
+
+					</p:treeTable>
+
+				</h:form>
+
+
+
+			</p:dialog>
+			<p:dialog id="exportDetialDlg" widgetVar="exportDetialDlg_w"
+				header="#{dic.dic['Detial']}">
+				<h:form>
+
+					<h:panelGrid columns="2" cellpadding="4"
+						style="font-weight:bold;font-size:20px">
+						<h:outputText value="#{missionControler.selectedExportData.title}" />
+					</h:panelGrid>
+					<p:separator />
+					<h:panelGrid columns="2" cellpadding="4">
+						<h:outputText value="#{dic.dic['Type']}" />
+						<h:outputText
+							value="#{missionControler.getTypeStr(missionControler.selectedExportData)}" />
+						<h:outputText value="#{dic.dic['LeaderName']} :"></h:outputText>
+						<h:outputText value="#{dic.dic['UserDoesNotExist']}"
+							style="color: red"
+							rendered="#{!toolBox.userExist(missionControler.selectedExportData.leaderName)}"></h:outputText>
+						<p:commandLink
+							rendered="#{toolBox.userExist(missionControler.selectedExportData.leaderName)}"
+							value="#{missionControler.selectedExportData.leaderName}"
+							actionListener="#{toolBox.initUserWrap(missionControler.selectedExportData.leader)}"
+							style="color: #0088cc" oncomplete="userDetialDlg_w.show()"
+							update=":userDetialDlg">
+							<f:setPropertyActionListener
+								target="#{globalDlgBean.selectedUserWrap}"
+								value="#{missionControler.selectedExportData.leader}"></f:setPropertyActionListener>
+						</p:commandLink>
+						<h:outputText value="#{dic.dic['DependentSystems']} :"></h:outputText>
+
+						<p:dataList
+							value="#{missionControler.selectedExportData.dependentSystems}"
+							var="system">
+							<p:column>
+								<h:outputText value="#{dic.dic['SystemDoesNotExist']}"
+									style="color: red"
+									rendered="#{!toolBox.systemExist(system.name)}"></h:outputText>
+								<p:commandLink value="#{system.name}" style="color: #0088cc"
+									rendered="#{toolBox.systemExist(system.name)}"
+									oncomplete="systemDetialDlg_w.show()" update=":systemDetialDlg">
+									<f:setPropertyActionListener
+										target="#{globalDlgBean.selectedSystem}" value="#{system}"></f:setPropertyActionListener>
+								</p:commandLink>
+							</p:column>
+						</p:dataList>
+						<h:outputText value="#{dic.dic['DependentFunctions']} :"></h:outputText>
+						<p:dataList
+							value="#{missionControler.selectedExportData.dependentFunctions}"
+							var="function">
+									#{function.systemName} - #{function.functionName}
+						</p:dataList>
+						<h:outputText value="#{dic.dic['DependentUnits']} :"
+							rendered="#{missionControler.getTypeStr(missionControler.selectedExportData) != 'Mission'}"></h:outputText>
+						<p:dataList
+							value="#{missionControler.selectedExportData.dependentObj}"
+							rendered="#{missionControler.getTypeStr(missionControler.selectedExportData) != 'Mission'}"
+							var="obj">
+							<p:commandLink value="#{obj.title}"
+								actionListener="#{toolBox.initMissionTarget(obj)}"
+								style="color: #0088cc" oncomplete="missionDetialDlg_w.show()"
+								update=":missionDetialDlg">
+								<f:setPropertyActionListener
+									target="#{globalDlgBean.selectedMissionObject}" value="#{obj}"></f:setPropertyActionListener>
+							</p:commandLink>
+						</p:dataList>
+
+					</h:panelGrid>
+					<p:separator />
+					<div class="mail-body-container">
+						<h:outputText
+							value="#{missionControler.selectedExportData.description}"
+							escape="false" styleClass="plain-body-container" />
+					</div>
+
+
+
+				</h:form>
+			</p:dialog>
+			<p:growl id="growl" showDetail="true" life="7777" />
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

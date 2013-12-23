@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+
+			#{dealingUnitControler.onRefresh()}
+			<p:layout>
+				<p:layoutUnit position="north">
+					<p:toolbar>
+						<p:toolbarGroup align="left"
+							rendered="#{dealingUnitControler.currentTask.task.statue.ordinal() == 0 || dealingUnitControler.currentTask.task.statue.ordinal()==7}">
+							<p:commandButton value="#{dic.dic['Submit']}"
+								actionListener="#{dealingUnitControler.enterSubmitMode}"
+								oncomplete="report_w.show()" update=":report" />
+							<p:commandButton value="#{dic.dic['Abandon']}"
+								actionListener="#{dealingUnitControler.enterAbandonMode}"
+								oncomplete="report_w.show()" update=":report" />
+							<p:commandButton value="#{dic.dic['ReportError']}"
+								actionListener="#{dealingUnitControler.enterReportErrorMode}"
+								oncomplete="report_w.show()" update=":report"></p:commandButton>
+							<p:commandButton value="#{dic.dic['TransferTask']}"
+								actionListener="#{dealingUnitControler.enterTransferMode}"
+								oncomplete="report_w.show()" update=":report"></p:commandButton>
+						</p:toolbarGroup>
+						<p:toolbarGroup align="right">
+							<p:commandButton value="#{dic.dic['Refresh']}"
+								actionListener="#{dealingUnitControler.onRefresh()}"
+								update="@all" />
+						</p:toolbarGroup>
+					</p:toolbar>
+				</p:layoutUnit>
+
+				<p:layoutUnit position="center">
+					<h:form id="detialForm">
+
+						<p:panel header="#{dic.dic['Caution']}" toggleable="true" closable="false"
+							toggleSpeed="200" closeSpeed="200"
+							rendered="#{dealingUnitControler.lackedFunctions.size() != 0}">
+							<h:outputText
+								value="#{dic.dic['ItSeemsLikeYouHaveDisqualifiedAuthorityShownBelow']}."></h:outputText>
+							<p:dataList value="#{dealingUnitControler.lackedFunctions}"
+								var="function">
+						#{function.systemName} : #{function.functionName}
+					</p:dataList>
+							<p:commandButton value="#{dic.dic['ApplyForPromotion']}"
+								actionListener="#{dealingUnitControler.enterAuthorityMode}"
+								oncomplete="report_w.show()" update=":report"></p:commandButton>
+
+						</p:panel>
+						<p:panel header="#{dic.dic['TaskDetial']}" toggleable="true" closable="false"
+							toggleSpeed="200" closeSpeed="200">
+
+							<h:panelGrid id="display" columns="2" cellpadding="4">
+
+								<h:outputText value="#{dic.dic['TaskTitle']}: "></h:outputText>
+								<h:outputText
+									value="#{dealingUnitControler.currentTask.task.title}"></h:outputText>
+
+								<h:outputText value="#{dic.dic['TaskCreator']}: "></h:outputText>
+								<h:outputText
+									value="#{dealingUnitControler.currentTask.task.creatorName}"></h:outputText>
+
+								<h:outputText value="#{dic.dic['StartTime']}: "></h:outputText>
+								<h:outputText
+									value="#{toolBox.convertTime(dealingUnitControler.currentTask.task.startTime)}"></h:outputText>
+
+								<h:outputText value="#{dic.dic['EndTime']}: "></h:outputText>
+								<h:outputText
+									value="#{toolBox.convertTime(dealingUnitControler.currentTask.task.endTime)}"></h:outputText>
+
+								<h:outputText value="#{dic.dic['TaskStatue']}: "></h:outputText>
+								<h:outputText
+									value="#{dealingUnitControler.currentTask.task.statue}"></h:outputText>
+
+								<h:outputText value="#{dic.dic['AttachFile']}: "></h:outputText>
+								<h:outputText
+									value="#{dealingUnitControler.currentTask.task.fileid}"></h:outputText>
+
+								<h:outputText value="#{dic.dic['TaskDescription']}: "></h:outputText>
+								<h:outputText
+									value="#{dealingUnitControler.currentTask.task.description}"></h:outputText>
+							</h:panelGrid>
+						</p:panel>
+						<p:panel header="#{dic.dic['MissionUnit']}" toggleable="true" closable="false"
+							collapsed="true" toggleSpeed="200" closeSpeed="200">
+
+							<util:mission mission="#{dealingUnitControler.currentTask}"></util:mission>
+
+						</p:panel>
+						<p:panel header="#{dic.dic['BelongedPartition']}" toggleable="true"
+							collapsed="true" closable="false" toggleSpeed="200"
+							closeSpeed="200">
+							<util:mission
+								mission="#{dealingUnitControler.belongedPartitionWrap}"></util:mission>
+						</p:panel>
+						<p:panel header="#{dic.dic['BelongedMission']}" toggleable="true"
+							collapsed="true" closable="false" toggleSpeed="200"
+							closeSpeed="200">
+							<p:outputPanel>
+								<util:mission
+									mission="#{dealingUnitControler.belongedMissionWrap}"></util:mission>
+							</p:outputPanel>
+
+						</p:panel>
+						<p:panel header="#{dic.dic['DependentUnit']}" toggleable="true"
+							closable="false" toggleSpeed="200" closeSpeed="200">
+
+							<p:dataList
+								value="#{dealingUnitControler.currentTask.dependentObj}"
+								var="unit" itemType="disc">
+						#{unit.toFormatString()}
+					</p:dataList>
+						</p:panel>
+						<p:panel header="#{dic.dic['DependentSystem']}" toggleable="true"
+							closable="false" toggleSpeed="200" closeSpeed="200">
+							<p:dataTable
+								value="#{dealingUnitControler.currentTask.dependentSystems}"
+								var="system">
+								<p:column style="width:4%">
+									<p:rowToggler />
+								</p:column>
+								<p:column>
+									<h:outputText value="#{system.toFormatString()}"></h:outputText>
+								</p:column>
+
+								<p:rowExpansion>
+									<h:panelGrid columns="2" cellpadding="4" style="width:300px;"
+										styleClass=" ui-widget-content grid">
+
+										<f:facet name="header">
+											<p:lightBox iframe="true">
+												<h:outputLink value="./systemSample.html"
+													title="#{system.name}">
+													<h:outputText value="#{dic.dic['EnterTheSystem']}" />
+												</h:outputLink>
+											</p:lightBox>
+										</f:facet>
+
+										<h:outputText value="#{dic.dic['Name']}:" />
+										<h:outputText value="#{system.name}" />
+
+										<h:outputText value="#{dic.dic['Url']}:" />
+										<h:outputText value="#{system.url}" />
+
+										<h:outputText value="#{dic.dic['Description']}:" />
+										<h:outputText value="#{system.description}" />
+
+										<h:outputText value="#{dic.dic['Duration']}: " />
+										<h:outputText value="#{system.duration}" />
+
+									</h:panelGrid>
+									<p:separator></p:separator>
+									<p:outputLabel value="#{dic.dic['DependentFunctions']}: "></p:outputLabel>
+									<p:dataList
+										value="#{dealingUnitControler.getCorrespondingFunction(system)}"
+										var="function">
+								#{function.systemName} : #{function.functionName}
+							</p:dataList>
+
+								</p:rowExpansion>
+							</p:dataTable>
+						</p:panel>
+						<p:separator></p:separator>
+
+					</h:form>
+				</p:layoutUnit>
+			</p:layout>
+
+
+
+			<p:dialog id="submitDlg" header="#{dic.dic['SubmitTask']}" widgetVar="submitDlg_w"
+				resizable="false">
+				<h:form enctype="multipart/form-data">
+					<h:panelGrid columns="1" cellpadding="4">
+						<h:outputText value="#{dic.dic['Report']}: "></h:outputText>
+						<p:editor value="#{dealingUnitControler.report}"></p:editor>
+						<h:outputText value="#{dic.dic['AttachFile']}:"></h:outputText>
+						<p:fileUpload value="#{dealingUnitControler.file}" mode="simple" />
+						<p:toolbar>
+							<p:toolbarGroup align="left">
+								<p:commandButton value="#{dic.dic['Submit']}"
+									actionListener="#{dealingUnitControler.submitTask}"
+									oncomplete="submitDlg_w.hide()" ajax="false" />
+							</p:toolbarGroup>
+						</p:toolbar>
+
+					</h:panelGrid>
+				</h:form>
+			</p:dialog>
+
+
+			<p:dialog id="report" header="#{dic.dic['Report']}" widgetVar="report_w"
+				resizable="false" modal="true" appendToBody="true">
+				<h:form id="reportForm" enctype="multipart/form-data">
+					<p:panelGrid columns="1" cellpadding="4" style="margin:0 auto;">
+						<p:row>
+							<p:inputTextarea value="#{dealingUnitControler.report}" required="true" requiredMessage="report is required"
+								counter="display" maxlength="250" style="width:100%"
+								counterTemplate="{0} characters remaining" />
+							<br></br>
+							<h:outputText id="display" />
+						</p:row>
+
+						<p:row rendered="#{dealingUnitControler.reportErrorMode}">
+							<h:outputText value="#{dic.dic['RelatedSystem']}:"></h:outputText>
+							<br></br>
+							<p:selectOneMenu value="#{dealingUnitControler.errorSystemName}"
+								required="true" size="20" maxlength="20"
+								requiredMessage="System required">
+								<f:selectItem itemLabel="Select One" itemValue="" />
+								<f:selectItems
+									value="#{dealingUnitControler.currentTask.dependentSystems}"
+									var="system" itemLabel="#{system.name}"
+									itemValue="#{system.name}" />
+
+
+							</p:selectOneMenu>
+						</p:row>
+
+						<p:row rendered="#{dealingUnitControler.transferMode}">
+							<h:outputText value="#{dic.dic['TransferTarget']}:"></h:outputText>
+							<br></br>
+							<p:autoComplete id="newLeader"
+								value="#{dealingUnitControler.transferTarget}" maxlength="50"
+								completeMethod="#{globalBean.completeUser}" required="true"
+								requiredMessage="Please enter target user name." global="false">
+								<f:validator binding="#{userExistValidator}">
+								</f:validator>
+							</p:autoComplete>
+
+						</p:row>
+
+						<p:row>
+							<h:outputText value="#{dic.dic['AttachFile']}:"></h:outputText>
+							<br></br>
+							<p:fileUpload value="#{dealingUnitControler.file}" mode="simple" />
+						</p:row>
+
+
+						<f:facet name="footer">
+							<p:commandButton value="#{dic.dic['Submit']}" id="submitBtn"
+								actionListener="#{dealingUnitControler.submitTask}"
+								oncomplete="report_w.hide()" ajax="false" update="report"
+								rendered="#{dealingUnitControler.submitTaskMode}"
+								onclick="statusDialog.show()" />
+							<p:commandButton value="#{dic.dic['Submit']}" id="abandonBtn"
+								actionListener="#{dealingUnitControler.abandonTask}"
+								oncomplete="report_w.hide()" ajax="false" update="report"
+								rendered="#{dealingUnitControler.abandonTaskMode}"
+								onclick="statusDialog.show()" />
+							<p:commandButton value="#{dic.dic['Submit']}" id="errorBtn"
+								actionListener="#{dealingUnitControler.reportError}"
+								oncomplete="report_w.hide()" ajax="false" update="report"
+								rendered="#{dealingUnitControler.reportErrorMode}"
+								onclick="statusDialog.show()" />
+							<p:commandButton value="#{dic.dic['Submit']}" id="transferBtn"
+								actionListener="#{dealingUnitControler.transferTask}"
+								oncomplete="report_w.hide()" ajax="false" update="report"
+								rendered="#{dealingUnitControler.transferMode}"
+								onclick="statusDialog.show()" />
+
+
+							<p:commandButton value="#{dic.dic['Submit']}" id="promoteBtn"
+								actionListener="#{dealingUnitControler.applyForAuthorityPromotion}"
+								oncomplete="report_w.hide()" ajax="false" update="report"
+								rendered="#{dealingUnitControler.authorityMode}"
+								onclick="statusDialog.show()" />
+						</f:facet>
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

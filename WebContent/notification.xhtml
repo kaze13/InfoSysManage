@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	#{notificationControler.conversationBegin()}
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+
+
+</h:head>
+<h:body>
+
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			#{notificationControler.onRefresh()}
+			<link rel="stylesheet" type="text/css" href="./css/message.css"></link>
+			<script type="text/javascript" src="./js/func.js"></script>
+
+			<p:layout>
+
+				<p:layoutUnit position="north" styleClass="nestedUnit">
+
+
+					<h:form id="toolbarForm">
+
+						<p:toolbar>
+
+							<p:toolbarGroup align="left">
+								<p:menuButton value="#{dic.dic['Filter']}">
+									<p:menuitem value="#{dic.dic['All']}"
+										update=":form :detialForm"
+										actionListener="#{notificationControler.showAll}" />
+									<p:menuitem value="#{dic.dic['Read']}"
+										update=":form :detialForm"
+										actionListener="#{notificationControler.showRead}" />
+									<p:menuitem value="#{dic.dic['NotRead']}"
+										update=":form :detialForm"
+										actionListener="#{notificationControler.showNotRead}" />
+
+								</p:menuButton>
+
+								<p:commandButton value="#{dic.dic['Delete']}"
+									actionListener="#{notificationControler.doDeleteNotification}"
+									update=":form" icon="ui-icon-trash"
+									rendered="#{notificationControler.selectedNotification != null}" />
+							</p:toolbarGroup>
+							<p:toolbarGroup align="right">
+
+								<p:commandButton style="visibility: hidden" />
+								<p:menuButton value="#{dic.dic['Layout']}">
+									<p:menuitem value="#{dic.dic['Horizontal']}" update="@all"
+										actionListener="#{notificationControler.changeLayoutHorizontal}" />
+									<p:menuitem value="#{dic.dic['Vertical']}" update="@all"
+										actionListener="#{notificationControler.changeLayoutVertical}" />
+								</p:menuButton>
+								<p:commandButton value="#{dic.dic['Refresh']}"
+									actionListener="#{notificationControler.onRefresh()}"
+									update="@all" />
+							</p:toolbarGroup>
+						</p:toolbar>
+
+					</h:form>
+				</p:layoutUnit>
+
+				<p:layoutUnit position="center" resizable="true"
+					binding="#{notificationControler.dataUnit}" styleClass="nestedUnit">
+					<h:form id="form">
+
+						<p:dataTable id="dataTable" var="notification"
+							sortBy="#{notification.time}" sortOrder="descending"
+							value="#{notificationControler.notificationListModel}"
+							selectionMode="single" styleClass="hide-column-names"
+							selection="#{notificationControler.selectedNotification}">
+
+							<p:ajax event="rowSelect"
+								update=":detialForm,:form:dataTable,:toolbarForm"
+								listener="#{notificationControler.readItem()}" />
+							<p:ajax event="rowUnselect" update=":toolbarForm" />
+
+							<p:column sortBy="#{notification.title}"
+								styleClass="#{notification.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+								<h:outputText value="#{notification.title}"
+									styleClass="#{notification.fileId!='none' ? 'attach-image' : null}" />
+							</p:column>
+							<p:column style="width:50%;" sortBy="#{message.body}"
+								styleClass="#{notification.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{notificationControler.abstraction(notification.body,150)}" />
+							</p:column>
+							<p:column sortBy="#{notification.time}"
+								styleClass="#{notification.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText
+									value="#{notificationControler.convertTime(notification.time)}" />
+							</p:column>
+
+							<p:column sortBy="#{notification.statue}"
+								styleClass="#{notification.statue.ordinal()==0 ? 'unreadMessage' : 'readMessage' }">
+
+								<h:outputText value="#{notification.statue}" />
+							</p:column>
+
+
+						</p:dataTable>
+					</h:form>
+
+				</p:layoutUnit>
+
+				<p:layoutUnit position="south" styleClass="nestedUnit" size="65%"
+					binding="#{notificationControler.detialUnit}" resizable="true">
+
+					<h:form id="detialForm">
+						<h:panelGroup layout="block"
+							rendered="#{notificationControler.selectedNotification == null}">
+							<div class="well selected-mail-message"
+								style="background-color: #e8e8e8">
+								<h:outputText styleClass="no-mail-message"
+									value="#{dic.dic['NoNotificationSelected']}"></h:outputText>
+							</div>
+						</h:panelGroup>
+						<p:outputPanel
+							rendered="#{notificationControler.selectedNotification != null}">
+							<h:panelGrid columns="2" cellpadding="4"
+								style="font-weight:bold;font-size:20px">
+								<h:outputText
+									value="#{notificationControler.selectedNotification.title}" />
+								<p:commandLink value="[Shortcut]" style="color: #0088cc"
+									rendered="#{notificationControler.selectedNotification.link != 'none'}"
+									action="#{notificationControler.redirect}"></p:commandLink>
+							</h:panelGrid>
+							<p:separator />
+							<h:panelGrid columns="2" cellpadding="4">
+
+
+								<h:outputLabel value="#{dic.dic['Time']} :" />
+								<h:outputText
+									value="#{notificationControler.convertTime(notificationControler.selectedNotification.time)}" />
+
+								<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+								<h:outputText value="#{dic.dic['NoAttachFile']}"
+									rendered="#{notificationControler.selectedNotification.fileId=='' or notificationControler.selectedNotification.fileId=='none'}" />
+
+								<p:commandLink id="downloadLink"
+									value="#{dic.dic['ClickToDownload']}" style="color: #0088cc"
+									rendered="#{notificationControler.selectedNotification.fileId!='' and notificationControler.selectedNotification.fileId!='none'}"
+									ajax="false"
+									actionListener="#{notificationControler.processDownload}">
+									<p:fileDownload value="#{notificationControler.downloadFile}" />
+								</p:commandLink>
+
+							</h:panelGrid>
+							<p:separator />
+							<div class="mail-body-container"
+								style="background-color: #e8e8e8">
+								<h:outputText styleClass="plain-body-container"
+									value="#{notificationControler.selectedNotification.body}"
+									escape="false" />
+							</div>
+
+
+
+						</p:outputPanel>
+
+
+					</h:form>
+
+				</p:layoutUnit>
+
+			</p:layout>
+
+			<p:dialog header="#{dic.dic['NotificationDetial']}"
+				widgetVar="notificationDialog" resizable="false"
+				id="notificationDlg">
+				<h:form id="notificationDetailForm">
+					<p:panelGrid id="display" columns="2" cellpadding="4"
+						style="margin:0 auto;">
+
+
+						<h:outputText value="#{dic.dic['Title']} :"></h:outputText>
+						<h:outputText
+							value="#{notificationControler.selectedNotification.title}" />
+
+						<h:outputText value="#{dic.dic['Body']} :"></h:outputText>
+						<h:outputText
+							value="#{notificationControler.selectedNotification.body}" />
+
+						<h:outputText value="#{dic.dic['Time']} :"></h:outputText>
+						<h:outputText
+							value="#{notificationControler.convertTime(notificationControler.selectedNotification.time)}" />
+						<h:outputText value="#{dic.dic['AttachFile']} :"></h:outputText>
+						<h:outputText value="#{dic.dic['NoAttachFile']}"
+							rendered="#{notificationControler.selectedNotification.fileId=='none'}" />
+
+						<p:commandLink id="downloadLink"
+							value="#{dic.dic['ClickToDownload']}"
+							rendered="#{notificationControler.selectedNotification.fileId!='none'}"
+							ajax="false"
+							actionListener="#{notificationControler.processDownload}">
+							<p:fileDownload value="#{notificationControler.downloadFile}" />
+						</p:commandLink>
+
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+
+
+
+			<p:growl id="growl" showDetail="true" life="5000" />
+		</ui:define>
+	</ui:composition>
+
+</h:body>
+</html>

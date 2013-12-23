@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			<link rel="stylesheet" type="text/css"
+				href="#{facesContext.externalContext.requestContextPath}/css/message.css"></link>
+			#{mainPageControler.onRefresh()}
+
+
+
+
+			<h:form>
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{dic.dic['PromoteAuthorityGroup']}"
+							oncomplete="promoteMainAuthorityDlg_w.show()"
+							update=":promoteMainAuthorityDlg" />
+					</p:toolbarGroup>
+					<p:toolbarGroup align="right">
+						<p:commandButton value="#{dic.dic['Refresh']}"
+							actionListener="#{mainPageControler.onRefresh()}" update="@all" />
+					</p:toolbarGroup>
+				</p:toolbar>
+
+
+			</h:form>
+
+
+			<p:dashboard id="dashBoard" model="#{mainPageControler.dashModel}">
+				<p:panel id="messageDash" header="#{dic.dic['UnreadMessages']}"
+					toggleable="true" closable="true" toggleSpeed="100"
+					closeSpeed="100">
+					<p:dataTable var="message" sortBy="#{message.time}"
+						sortOrder="descending" value="#{mainPageControler.unreadMessages}">
+						<p:column styleClass="unreadMessage">
+							<p:commandLink value="#{message.title}"
+								action="#{mainPageControler.redirectToMessage}">
+							</p:commandLink>
+						</p:column>
+
+					</p:dataTable>
+
+				</p:panel>
+
+				<p:panel id="notificationDash"
+					header="#{dic.dic['UnreadNotifications']}" toggleable="true"
+					closable="true" toggleSpeed="100" closeSpeed="100">
+					<p:dataTable var="notification" sortBy="#{notification.time}"
+						rows="10" sortOrder="descending"
+						value="#{mainPageControler.unreadNotifications}">
+						<p:column styleClass="unreadMessage">
+							<p:commandLink value="#{notification.title}"
+								action="#{mainPageControler.redirectToNotification}">
+							</p:commandLink>
+						</p:column>
+
+					</p:dataTable>
+
+				</p:panel>
+				<p:panel header="#{dic.dic['UndealedApplications']}"
+					toggleable="true" id="applicationDash" closable="true"
+					toggleSpeed="100" closeSpeed="100">
+					<p:dataTable var="app" sortBy="#{app.time}" sortOrder="descending"
+						value="#{mainPageControler.undealedApplications}">
+						<p:column styleClass="unreadMessage">
+							<p:commandLink value="#{app.title}"
+								action="#{mainPageControler.redirectToApplication}">
+							</p:commandLink>
+						</p:column>
+
+					</p:dataTable>
+
+				</p:panel>
+
+				<p:panel header="#{dic.dic['UnacceptedTasks']}" id="taskDash"
+					toggleable="true" closable="true" toggleSpeed="100"
+					closeSpeed="100">
+					<p:dataTable var="task"
+						value="#{mainPageControler.unacceptedTasks}">
+						<p:column styleClass="unreadMessage">
+							<p:commandLink value="#{task.title}"
+								action="#{mainPageControler.redirectToTask}">
+							</p:commandLink>
+						</p:column>
+
+					</p:dataTable>
+
+
+				</p:panel>
+				<p:panel header="#{dic.dic['TemporaryAuthority']}" toggleable="true"
+					id="authorityDash" closable="true" toggleSpeed="100"
+					closeSpeed="100">
+					<p:dataTable
+						value="#{mainPageControler.currentUser.temporaryAuthority}"
+						var="authority">
+						<p:column headerText="#{dic.dic['Authority']}">
+							#{authority.function.systemName} - #{authority.function.functionName}
+						</p:column>
+						<p:column headerText="#{dic.dic['ExpireTime']}">
+							#{toolBox.convertTime(authority.expireTime)}
+						</p:column>
+					</p:dataTable>
+				</p:panel>
+			</p:dashboard>
+
+
+			<p:dialog widgetVar="promoteMainAuthorityDlg_w"
+				id="promoteMainAuthorityDlg"
+				header="#{dic.dic['PromoteMainAuthority']}">
+				<h:form>
+					<p:panelGrid columns="2">
+						<h:outputText value="#{dic.dic['Authority']}: " />
+						<p:selectOneMenu value="#{mainPageControler.promoteAuthority}"
+							required="true" requiredMessage="authority is required">
+							<f:selectItem itemLabel="Select One" itemValue="" />
+							<f:selectItems value="#{mainPageControler.lackedAuthorityList}"
+								var="authority" itemLabel="#{authority}"
+								itemValue="#{authority}" />
+						</p:selectOneMenu>
+						<h:outputText value="#{dic.dic['Reason']}: " />
+						<p:inputTextarea value="#{mainPageControler.comment}"
+							required="true" requiredMessage="comment is required"
+							maxlength="250"></p:inputTextarea>
+
+
+					</p:panelGrid>
+					<p:commandButton value="#{dic.dic['Submit']}" oncomplete="promoteMainAuthorityDlg_w.hide()"
+						actionListener="#{mainPageControler.promoteMainAuthority}"></p:commandButton>
+				</h:form>
+			</p:dialog>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition>
+
+		<h:form>
+			<p:toolbar>
+				<p:toolbarGroup align="left">
+					<h:outputText value="#{dic.dic['TheSystem']}" style="font-size:25px"></h:outputText>
+				</p:toolbarGroup>
+
+				<p:toolbarGroup align="right">
+					<h:outputText value="#{dic.dic['Welcome']}"></h:outputText>
+					<p:commandLink value="#{mainPageControler.currentUser.name}   "></p:commandLink>
+					<p:splitButton value="#{dic.dic['Option']}">
+						<p:menuitem value="#{dic.dic['ClearCache']}"
+							actionListener="#{mainPageControler.clearCache}"
+							icon="ui-icon-arrowrefresh-1-w" />
+						<p:menuitem value="#{dic.dic['ReloadDictionary']}"
+							actionListener="#{mainPageControler.reloadDictionary}"
+							icon="ui-icon-arrowrefresh-1-w" />
+					</p:splitButton>
+					<p:commandButton value="#{dic.dic['Search']}" oncomplete="searchDlg_w.show()"
+						update=":searchDlg"></p:commandButton>
+					<p:commandButton value="#{dic.dic['Logoff']}"
+						actionListener="#{mainPageControler.logoff}" />
+				</p:toolbarGroup>
+
+			</p:toolbar>
+
+			<p:hotkey bind="ctrl+shift+f" update=":searchDlg"
+				oncomplete="searchDlg_w.show()" />
+
+		</h:form>
+
+		<p:dialog id="searchDlg" widgetVar="searchDlg_w"
+			header="#{dic.dic['GlobalSearch']}">
+			<h:form id="searchForm">
+				<p:inputText value="#{globalSearchControler.keyword}"></p:inputText>
+				<p:commandButton value="#{dic.dic['Search']}"
+					oncomplete="document.getElementById('searchForm:searchResult').click()"
+					update="@form" actionListener="#{globalSearchControler.search()}"></p:commandButton>
+				<p:lightBox iframe="true" width="1000px" height="600px">
+					<h:outputLink style="visibility: hidden" id="searchResult"
+						value="#{facesContext.externalContext.requestContextPath}/search.jsf" title="#{dic.dic['SearchResult']}">
+
+						<h:outputText value="#{dic.dic['SearchResult']}" />
+					</h:outputLink>
+				</p:lightBox>
+			</h:form>
+
+		</p:dialog>
+
+
+
+	</ui:composition>
+</h:body>
+</html>

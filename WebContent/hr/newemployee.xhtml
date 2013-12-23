@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition template="/template/masterlayout.xhtml">
+		<ui:define name="content">
+			<h:form id="form">
+				<p:toolbar>
+					<p:toolbarGroup>
+						<p:commandButton value="#{dic.dic['Clear']}" update="@form"
+							actionListener="#{newEmployeesFlowControler.clear()}"></p:commandButton>
+					</p:toolbarGroup>
+					<p:toolbarGroup align="right">
+						<p:commandButton value="#{dic.dic['Refresh']}"
+							actionListener="#{newEmployeesFlowControler.onRefresh()}"
+							update="@all" />
+					</p:toolbarGroup>
+				</p:toolbar>
+				<p:growl id="msgs" />
+				<p:panel header="#{dic.dic['AddANewIncomingEmployee']}">
+					<h:panelGrid columns="2" id="grid">
+						<h:outputLabel value="#{dic.dic['RealName']} : *" for="realNameTxt"></h:outputLabel>
+						<p:inputText id="realNameTxt"
+							value="#{newEmployeesFlowControler.userProfile.realName}"
+							maxlength="50" required="true" requiredMessage="real name is required" />
+
+						<h:outputLabel value="#{dic.dic['IdentityNumber']} : *" for="identityNumberTxt"></h:outputLabel>
+						<p:inputText id="identityNumberTxt" maxlength="50" required="true" requiredMessage="identity number is required"
+							value="#{newEmployeesFlowControler.userProfile.identityNumber}" />
+
+						<h:outputLabel value="#{dic.dic['Description']} : " for="descriptionTxt"></h:outputLabel>
+						<p:inputText id="descriptionTxt" maxlength="100"
+							value="#{newEmployeesFlowControler.userProfile.description}" />
+
+
+						<h:outputLabel value="#{dic.dic['Department']} : " for="departmentTxt"></h:outputLabel>
+						<p:inputText id="departmentTxt" maxlength="50"
+							value="#{newEmployeesFlowControler.userProfile.department}" />
+
+						<h:outputLabel value="#{dic.dic['Position']} : " for="roleNameTxt"></h:outputLabel>
+						<p:selectOneMenu required="true" requiredMessage="position is required"
+							value="#{newEmployeesFlowControler.userProfile.roleName}">
+							<f:selectItem itemLabel="Select One" itemValue="" />
+							<f:selectItems value="#{newEmployeesFlowControler.baseRoleList}"
+								var="role" itemLabel="#{role.name}" itemValue="#{role.name}"></f:selectItems>
+						</p:selectOneMenu>
+						<p:commandButton value="#{dic.dic['Reset']}" type="reset" />
+						<p:commandButton id="btn_add" value="#{dic.dic['Add']}"
+							update="userProfiles msgs @parent"
+							action="#{newEmployeesFlowControler.reinit}">
+							<p:collector value="#{newEmployeesFlowControler.userProfile}"
+								addTo="#{newEmployeesFlowControler.userProfiles}" />
+						</p:commandButton>
+					</h:panelGrid>
+				</p:panel>
+
+				<p:outputPanel id="userProfiles">
+					<p:dataTable id="profilesTable"
+						value="#{newEmployeesFlowControler.userProfiles}" var="profile">
+
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['RealName']}" />
+							</f:facet>
+							<h:outputText value="#{profile.realName}" />
+						</p:column>
+
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['IdentityNumber']}" />
+							</f:facet>
+							<h:outputText value="#{profile.identityNumber}" />
+						</p:column>
+
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['Description']}" />
+							</f:facet>
+							<h:outputText value="#{profile.description}" />
+						</p:column>
+
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['Position']}" />
+							</f:facet>
+							<h:outputText value="#{profile.roleName}" />
+						</p:column>
+
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['Department']}" />
+							</f:facet>
+							<h:outputText value="#{profile.department}" />
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="#{dic.dic['Operation']}" />
+							</f:facet>
+							<p:commandLink value="#{dic.dic['Remove']}" update=":form:userProfiles"
+								process=":form:userProfiles">
+								<p:collector value="#{profile}"
+									removeFrom="#{newEmployeesFlowControler.userProfiles}" />
+							</p:commandLink>
+						</p:column>
+
+					</p:dataTable>
+				</p:outputPanel>
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{dic.dic['SubmitApplication']}"
+							oncomplete="submitDlg_w.show()" update=":submitDlg"></p:commandButton>
+					</p:toolbarGroup>
+				</p:toolbar>
+			</h:form>
+
+			<p:dialog id="submitDlg" widgetVar="submitDlg_w" header="#{dic.dic['Submission']}"
+				modal="true" appendToBody="true">
+				<h:form enctype="multipart/form-data">
+					<p:inputTextarea style="width:98%;height:200px" autoResize="false"
+						value="#{newEmployeesFlowControler.comment}" maxlength="50" required="true" requiredMessage="comment is required"/>
+					<p:separator />
+					<h:outputLabel for="attach" value="#{dic.dic['AttachFile']}: "></h:outputLabel>
+					<p:fileUpload id="attach" value="#{newEmployeesFlowControler.file}"
+						mode="simple" />
+					<p:commandButton value="#{dic.dic['Submit']}" oncomplete="submitDlg_w.hide()"
+						ajax="false" onclick="statusDialog.show();"
+						actionListener="#{newEmployeesFlowControler.submitNewEmployeeApplication}"></p:commandButton>
+				</h:form>
+			</p:dialog>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

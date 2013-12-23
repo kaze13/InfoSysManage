@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:composite="http://java.sun.com/jsf/composite">
+
+
+<composite:interface>
+	<composite:attribute name="userWrap" type="system.vo.UserWrap"/>
+</composite:interface>
+
+<composite:implementation>
+	<p:panelGrid  columns="2" cellpadding="4">
+		<h:outputText value="#{dic.dic['Username']} :*"></h:outputText>
+		<h:outputText value="#{cc.attrs.userWrap.name}" />
+
+		<h:outputText value="#{dic.dic['Password']} :*"></h:outputText>
+		<h:outputText value="#{cc.attrs.userWrap.password}" />
+
+		<h:outputText value="#{dic.dic['Role']} :"></h:outputText>
+		<h:outputText value="#{cc.attrs.userWrap.roleName}" />
+
+		<h:outputText value="#{dic.dic['ExpireTime']} :"></h:outputText>
+		<h:outputText value="#{toolBox.convertTime(cc.attrs.userWrap.expireTime)}" />
+
+		<h:outputText value="#{dic.dic['RealName']} :"></h:outputText>
+		<h:outputText value="#{cc.attrs.userWrap.realName}" />
+
+		<h:outputText value="#{dic.dic['IdentityNumber']} :"></h:outputText>
+		<h:outputText value="#{cc.attrs.userWrap.identityNumber}" />
+
+		<h:outputText value="#{dic.dic['Description']} :"></h:outputText>
+		<h:outputText value="#{cc.attrs.userWrap.description}" />
+
+		<h:outputText value="#{dic.dic['Department']} :"></h:outputText>
+		<h:outputText value="#{cc.attrs.userWrap.department}" />
+
+
+	</p:panelGrid>
+
+	<p:dataList value="#{cc.attrs.userWrap.authority}" var="authority">
+		#{authority}
+	</p:dataList>
+	<p:dataTable value="#{cc.attrs.userWrap.authorisedFunctions}"
+		var="function">
+		<f:facet name="header">
+			<h:outputText value="#{dic.dic['AuthorisedFunctions']}"></h:outputText>
+		</f:facet>
+		<p:column>
+			#{function.systemName} - #{function.functionName}
+		</p:column>
+
+
+	</p:dataTable>
+
+	<p:dataTable value="#{cc.attrs.userWrap.temporaryAuthority}"
+		var="authority">
+		<f:facet name="header">
+			<h:outputText value="#{dic.dic['TemporaryAuthority']}"></h:outputText>
+		</f:facet>
+		<p:column>
+			#{authority.function.systemName} - #{authority.function.functionName}
+		</p:column>
+
+		<p:column>
+			#{toolBox.convertTime(authority.expireTime)}
+		</p:column>
+	</p:dataTable>
+	<p:commandButton value="#{dic.dic['SendMail']}" oncomplete="_newMessageDlg_w.show()" update=":_newMessageDlg">
+		<f:setPropertyActionListener
+			target="#{messageControler.newMessage.recieverName}"
+			value="#{cc.attrs.userWrap.name}"></f:setPropertyActionListener>
+	</p:commandButton>
+
+
+</composite:implementation>
+
+
+</html>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition>
+		<h:form id="form111">
+
+
+			<p:menu style="width:100%">
+
+				<p:submenu label="#{dic.dic['General']}">
+					<p:menuitem value="#{dic.dic['Dashboard']}" url="/index.jsf"
+						onclick="statusDialog.show()" />
+					<p:menuitem value="#{dic.dic['Task']}" url="/task.jsf"
+						onclick="statusDialog.show()" />
+
+				</p:submenu>
+				<p:submenu label="#{dic.dic['MessageCenter']}">
+					<p:menuitem value="#{dic.dic['Message']}" url="/commonMessage.jsf"
+						onclick="statusDialog.show()" />
+					<p:menuitem value="#{dic.dic['Notification']}" url="/notification.jsf"
+						onclick="statusDialog.show()" />
+					<p:menuitem value="#{dic.dic['Application']}" url="/application.jsf"
+						onclick="statusDialog.show()" />
+				</p:submenu>
+				<p:submenu label="#{dic.dic['MissionCenter']}" rendered="#{p:ifAnyGranted('admin,superuser,hr,user')}">
+					<p:menuitem value="#{dic.dic['MissionManagement']} " url="/missionmanagement.jsf"
+						onclick="statusDialog.show()" />
+					<p:menuitem value="#{dic.dic['PartitionManagement']}"
+						url="/partitionmanagement.jsf" onclick="statusDialog.show()" />
+					<p:separator></p:separator>
+					<p:menuitem value="#{dic.dic['Executive\'sMissionManagement']}"
+						rendered="#{p:ifAnyGranted('admin,superuser')}"
+						url="/superuser/mission.jsf" onclick="statusDialog.show()" />
+				</p:submenu>
+
+				<p:submenu label="#{dic.dic['Humanresource']}" >
+					<p:menuitem value="#{dic.dic['GuestManagement']}" url="/guest.jsf"
+						onclick="statusDialog.show()" />
+					<p:menuitem value="#{dic.dic['NewEmployeeIncomingSetting']}" url="/hr/newemployee.jsf" rendered="#{p:ifAnyGranted('hr')}"
+						onclick="statusDialog.show()" />
+				</p:submenu>
+				<p:submenu label="#{dic.dic['SystemAdmin']}" rendered="#{p:ifAnyGranted('admin,superuser,hr,user')}">
+
+					<p:menuitem value="#{dic.dic['SystemAdminControl']}" url="/systemadmin.jsf"
+						onclick="statusDialog.show()" />
+				</p:submenu>
+
+				<p:submenu label="#{dic.dic['Admin\'sControlPanel']}"
+					rendered="#{p:ifGranted('admin')}">
+					<p:menuitem value="#{dic.dic['SystemControl']}" url="/admin/system.jsf"
+						onclick="statusDialog.show()" />
+
+					<p:menuitem value="#{dic.dic['UserControl']}" url="/admin/user.jsf"
+						onclick="statusDialog.show()" />
+					<p:menuitem value="#{dic.dic['RoleControl']}" url="/admin/role.jsf"
+						onclick="statusDialog.show()" />
+					<p:menuitem value="#{dic.dic['DictionarySetting']}" url="/admin/dictionarycontrol.jsf"
+						onclick="statusDialog.show()" />
+				</p:submenu>
+
+			</p:menu>
+		</h:form>
+
+
+	</ui:composition>
+</h:body>
+</html>

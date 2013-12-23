@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title></title>
+</h:head>
+<h:body>
+	<ui:composition>
+		<p:dialog id="discussionForumDlg" widgetVar="discussionForumDlg_w"
+			header="#{dic.dic['DiscussionForum']}">
+			<h:form id="forumForm">
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{dic.dic['NewSubject']}"
+							oncomplete="newSubjectDlg_w.show()" update=":newSubjectDlg"></p:commandButton>
+					</p:toolbarGroup>
+				</p:toolbar>
+				<p:dataTable value="#{discussionControler.currentDiscussionForum}"
+					var="discussion">
+					<p:column>
+						<p:commandLink value="#{discussion.title}"
+							oncomplete="subjectDetialDlg_w.show()" update=":subjectDetialDlg">
+							<f:setPropertyActionListener
+								target="#{discussionControler.currentDiscussion}"
+								value="#{discussion}"></f:setPropertyActionListener>
+						</p:commandLink>
+					</p:column>
+				</p:dataTable>
+
+			</h:form>
+		</p:dialog>
+
+		<p:dialog id="newSubjectDlg" widgetVar="newSubjectDlg_w">
+			<h:form>
+				<p:panelGrid columns="2">
+					<h:outputText value="#{dic.dic['Title']}"></h:outputText>
+					<p:inputText value="#{discussionControler.newDiscussion.title}"
+						required="true" requiredMessage="title is required" maxlength="50"></p:inputText>
+					<h:outputText value="#{dic.dic['Content']}"></h:outputText>
+					<p:inputTextarea
+						value="#{discussionControler.newDiscussion.content}"
+						required="true" requiredMessage="content is required"
+						maxlength="250"></p:inputTextarea>
+
+				</p:panelGrid>
+
+				<p:commandButton value="#{dic.dic['Submit']}"
+					actionListener="#{discussionControler.addNewSubject}"
+					update=":forumForm" oncomplete="newSubjectDlg_w.hide()"></p:commandButton>
+			</h:form>
+
+		</p:dialog>
+
+		<p:dialog id="subjectDetialDlg" widgetVar="subjectDetialDlg_w">
+			<h:form>
+				<h:outputText value="#{dic.dic['Title']}"></h:outputText>
+				<h:outputText value="#{discussionControler.currentDiscussion.title}"></h:outputText>
+				<h:outputText value="#{dic.dic['Content']}"></h:outputText>
+				<h:outputText
+					value="#{discussionControler.currentDiscussion.content}"></h:outputText>
+
+				<p:dataList
+					value="#{discussionControler.currentDiscussion.replyList}"
+					var="reply">
+					<p:column>
+						<h:outputText value="#{reply.authorName}"></h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText value="#{reply.authorName}"></h:outputText>
+					</p:column>
+				</p:dataList>
+
+				<p:inputTextarea value="#{discussionControler.newReply.content}"></p:inputTextarea>
+
+
+				<p:commandButton value="#{dic.dic['Reply']}" update="@form"
+					actionListener="#{discussionControler.addNewReply}"></p:commandButton>
+			</h:form>
+
+		</p:dialog>
+	</ui:composition>
+</h:body>
+</html>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:composite="http://java.sun.com/jsf/composite"
+	xmlns:util="http://java.sun.com/jsf/composite/util">
+
+
+<composite:interface>
+	<composite:attribute name="mission" />
+</composite:interface>
+
+<composite:implementation>
+	<p:outputPanel rendered="#{cc.attrs.mission != null}">
+		<h:panelGrid columns="2" cellpadding="4"
+			style="font-weight:bold;font-size:20px">
+			<h:outputText value="#{cc.attrs.mission.title}" />
+		</h:panelGrid>
+		<p:separator />
+		<h:panelGrid columns="2" cellpadding="4">
+			<h:outputText value="#{dic.dic['Type']}" />
+			<h:outputText
+				value="#{missionControler.getTypeStr(cc.attrs.mission)}" />
+			<h:outputText value="#{dic.dic['LeaderName']} :"></h:outputText>
+
+			<p:commandLink value="#{cc.attrs.mission.leaderName}"
+				actionListener="#{toolBox.initUserWrap(cc.attrs.mission.leader)}"
+				style="color: #0088cc" oncomplete="userDetialDlg_w.show()"
+				update=":userDetialDlg">
+				<f:setPropertyActionListener
+					target="#{globalDlgBean.selectedUserWrap}"
+					value="#{cc.attrs.mission.leader}"></f:setPropertyActionListener>
+			</p:commandLink>
+			<h:outputText value="#{dic.dic['DependentSystems']} :"></h:outputText>
+
+			<p:dataList value="#{cc.attrs.mission.dependentSystems}" var="system">
+				<p:column>
+					<p:commandLink value="#{system.name}" style="color: #0088cc"
+						oncomplete="systemDetialDlg_w.show()" update=":systemDetialDlg">
+						<f:setPropertyActionListener
+							target="#{globalDlgBean.selectedSystem}" value="#{system}"></f:setPropertyActionListener>
+					</p:commandLink>
+				</p:column>
+			</p:dataList>
+			<h:outputText value="#{dic.dic['DependentFunctions']} :"></h:outputText>
+			<p:dataList value="#{cc.attrs.mission.dependentFunctions}"
+				var="function">
+									#{function.systemName} - #{function.functionName}
+			</p:dataList>
+			<h:outputText value="#{dic.dic['DependentMissionObjects']} :"
+				rendered="#{missionControler.getTypeStr(cc.attrs.mission) != 'Mission'}"></h:outputText>
+			<p:dataList value="#{cc.attrs.mission.dependentObj}"
+				rendered="#{missionControler.getTypeStr(cc.attrs.mission) != 'Mission'}"
+				var="obj">
+				<p:commandLink value="#{obj.title}"
+					actionListener="#{toolBox.initMissionTarget(obj)}"
+					style="color: #0088cc" oncomplete="missionDetialDlg_w.show()"
+					update=":missionDetialDlg">
+					<f:setPropertyActionListener
+						target="#{globalDlgBean.selectedMissionObject}" value="#{obj}"></f:setPropertyActionListener>
+				</p:commandLink>
+			</p:dataList>
+			<h:outputLabel value="#{dic.dic['AttachFile']} :" />
+			<h:outputText value="#{dic.dic['NoAttachFile']}"
+				rendered="#{cc.attrs.mission.fileId=='none'}" />
+
+			<p:commandLink id="downloadLink"
+				value="#{dic.dic['ClickToDownLoad']}" style="color: #0088cc"
+				rendered="#{cc.attrs.mission.fileId!='none'}" ajax="false"
+				actionListener="#{toolBox.processDownload(cc.attrs.mission)}">
+				<p:fileDownload value="#{toolBox.downloadFile}" />
+			</p:commandLink>
+			<h:outputText value="#{dic.dic['Progress']} :" />
+			<h:outputText value="#{dic.dic['NotCompleted']}"
+				rendered="#{cc.attrs.mission.progress >= 0 and cc.attrs.mission.progress lt 100}" />
+			<h:outputText value="#{dic.dic['NotVerified']}"
+				rendered="#{cc.attrs.mission.progress == -1}" />
+			<h:outputText value="#{dic.dic['Verifying']}"
+				rendered="#{cc.attrs.mission.progress == -2}" />
+			<h:outputText value="#{dic.dic['Rejected']}"
+				rendered="#{cc.attrs.mission.progress == -3}" />
+			<h:outputText value="#{dic.dic['Submitted']}"
+				rendered="#{cc.attrs.mission.progress == -4}" />
+			<h:outputText value="#{dic.dic['Completed']}"
+				rendered="#{cc.attrs.mission.progress == 100}" />
+			<h:outputText value="#{dic.dic['SubmissionRejected']}"
+				rendered="#{cc.attrs.mission.progress == -6}" />
+		</h:panelGrid>
+		<p:separator />
+		<div class="mail-body-container">
+			<h:outputText value="#{cc.attrs.mission.description}" escape="false"
+				styleClass="plain-body-container" />
+		</div>
+
+
+	</p:outputPanel>
+
+
+</composite:implementation>
+
+
+</html>
